@@ -1,0 +1,26 @@
+{
+  "name": "channel3-ui",
+  "version": "0.1.0",
+  "description": "A collection of shadcn-style React components for financial data visualization",
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/channel3-ai/channel3-ui"
+  },
+  "keywords": [
+    "react",
+    "components",
+    "shadcn",
+    "ui",
+    "charts",
+    "finance",
+    "tailwindcss"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "tailwindcss": ">=3"
+  }
+}
+
