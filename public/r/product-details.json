@@ -8,16 +8,16 @@
   ],
   "registryDependencies": [
     "separator",
-    "@channel3/image-gallery",
-    "@channel3/offers-list",
-    "@channel3/variant-selector",
-    "@channel3/price-range-gauge",
-    "@channel3/price-history-chart",
-    "@channel3/product-attributes",
-    "@channel3/product-recommendations",
-    "@channel3/use-product-recommendations",
-    "@channel3/use-variant-selection",
-    "@channel3/format"
+    "https://ui.trychannel3.com/r/image-gallery.json",
+    "https://ui.trychannel3.com/r/offers-list.json",
+    "https://ui.trychannel3.com/r/variant-selector.json",
+    "https://ui.trychannel3.com/r/price-range-gauge.json",
+    "https://ui.trychannel3.com/r/price-history-chart.json",
+    "https://ui.trychannel3.com/r/product-attributes.json",
+    "https://ui.trychannel3.com/r/product-recommendations.json",
+    "https://ui.trychannel3.com/r/use-product-recommendations.json",
+    "https://ui.trychannel3.com/r/use-variant-selection.json",
+    "https://ui.trychannel3.com/r/format.json"
   ],
   "files": [
     {

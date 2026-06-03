@@ -15,8 +15,8 @@
     "input",
     "slider",
     "popover",
-    "@channel3/search",
-    "@channel3/use-async-options"
+    "https://ui.trychannel3.com/r/search.json",
+    "https://ui.trychannel3.com/r/use-async-options.json"
   ],
   "files": [
     {

@@ -24,7 +24,7 @@
     "dev": "vite",
     "build": "pnpm registry:build && vite build",
     "preview": "vite preview",
-    "registry:build": "shadcn build",
+    "registry:build": "shadcn build && node scripts/rewrite-registry-deps.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",

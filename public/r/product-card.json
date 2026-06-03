@@ -10,8 +10,8 @@
   "registryDependencies": [
     "badge",
     "skeleton",
-    "@channel3/format",
-    "@channel3/variants"
+    "https://ui.trychannel3.com/r/format.json",
+    "https://ui.trychannel3.com/r/variants.json"
   ],
   "files": [
     {

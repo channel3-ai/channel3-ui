@@ -7,8 +7,8 @@
     "@channel3/sdk"
   ],
   "registryDependencies": [
-    "@channel3/product-carousel",
-    "@channel3/use-product-recommendations"
+    "https://ui.trychannel3.com/r/product-carousel.json",
+    "https://ui.trychannel3.com/r/use-product-recommendations.json"
   ],
   "files": [
     {

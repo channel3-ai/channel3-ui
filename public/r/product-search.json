@@ -9,10 +9,10 @@
   ],
   "registryDependencies": [
     "button",
-    "@channel3/product-grid",
-    "@channel3/search-bar",
-    "@channel3/product-filters",
-    "@channel3/use-product-search"
+    "https://ui.trychannel3.com/r/product-grid.json",
+    "https://ui.trychannel3.com/r/search-bar.json",
+    "https://ui.trychannel3.com/r/product-filters.json",
+    "https://ui.trychannel3.com/r/use-product-search.json"
   ],
   "files": [
     {
