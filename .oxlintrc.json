@@ -1,0 +1,46 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": "off",
+    "curly": ["error", "all"],
+    "typescript/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
+    ],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "@channel3/sdk",
+            "allowTypeImports": true,
+            "message": "Runtime imports from @channel3/sdk are not allowed in registry components. Components must stay presentational: import types only (`import type`). Data fetching and the API key belong on the consumer's server."
+          }
+        ],
+        "patterns": [
+          {
+            "group": ["@channel3/sdk/*"],
+            "allowTypeImports": true,
+            "message": "Runtime imports from @channel3/sdk are not allowed in registry components. Import types only (`import type`)."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["node_modules", "dist", "build", "coverage", "public/r", "components/ui"]
+}
