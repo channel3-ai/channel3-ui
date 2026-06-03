@@ -122,11 +122,16 @@ export function ProductCard({
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           aria-hidden
-          className="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="absolute inset-0 size-full bg-muted object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
       ) : null}
       {preview ? (
-        <img src={preview} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
+        <img
+          src={preview}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 size-full bg-muted object-cover"
+        />
       ) : null}
       {soldOut ? (
         <Badge variant="secondary" className="absolute right-2 top-2">

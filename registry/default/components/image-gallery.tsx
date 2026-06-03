@@ -122,7 +122,7 @@ export function ImageGallery({ images, alt, previewSrc, className, ...props }: I
             src={previewSrc}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute inset-0 size-full rounded-lg object-cover"
+            className="pointer-events-none absolute inset-0 size-full rounded-lg bg-muted object-cover"
           />
         ) : null}
       </div>
