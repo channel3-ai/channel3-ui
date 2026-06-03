@@ -4,8 +4,8 @@
   "title": "Channel3 — everything",
   "description": "Installs the full Channel3 UI kit: every component, hook, and lib in the registry.",
   "registryDependencies": [
-    "@channel3/product-search",
-    "@channel3/product-details"
+    "https://ui.trychannel3.com/r/product-search.json",
+    "https://ui.trychannel3.com/r/product-details.json"
   ],
   "files": [],
   "type": "registry:block"

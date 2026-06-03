@@ -10,7 +10,7 @@
   "registryDependencies": [
     "chart",
     "empty",
-    "@channel3/format"
+    "https://ui.trychannel3.com/r/format.json"
   ],
   "files": [
     {

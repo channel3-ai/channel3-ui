@@ -8,27 +8,50 @@
       "type": "registry:lib",
       "title": "Format helpers",
       "description": "Price, currency, discount, domain, availability, and image helpers for Channel3 product data.",
-      "dependencies": ["@channel3/sdk"],
-      "files": [{ "path": "registry/default/lib/format.ts", "type": "registry:lib" }]
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "files": [
+        {
+          "path": "registry/default/lib/format.ts",
+          "type": "registry:lib"
+        }
+      ]
     },
     {
       "name": "variants",
       "type": "registry:lib",
       "title": "Variant helpers",
       "description": "Classifies variant option values into display tiers from `exists` and `available`.",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["@channel3/format"],
-      "files": [{ "path": "registry/default/lib/variants.ts", "type": "registry:lib" }]
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/format.json"
+      ],
+      "files": [
+        {
+          "path": "registry/default/lib/variants.ts",
+          "type": "registry:lib"
+        }
+      ]
     },
     {
       "name": "use-variant-selection",
       "type": "registry:hook",
       "title": "useVariantSelection",
       "description": "Manages variant selection and server-side re-resolution via an injected resolver, keeping the API key on your server.",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["@channel3/variants"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/variants.json"
+      ],
       "files": [
-        { "path": "registry/default/hooks/use-variant-selection.ts", "type": "registry:hook" }
+        {
+          "path": "registry/default/hooks/use-variant-selection.ts",
+          "type": "registry:hook"
+        }
       ]
     },
     {
@@ -36,15 +59,24 @@
       "type": "registry:lib",
       "title": "Search filter helpers",
       "description": "UI-friendly search filter state, conversion to the SDK SearchFilters payload, option lists, color presets, and hex helpers.",
-      "dependencies": ["@channel3/sdk"],
-      "files": [{ "path": "registry/default/lib/search.ts", "type": "registry:lib" }]
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "files": [
+        {
+          "path": "registry/default/lib/search.ts",
+          "type": "registry:lib"
+        }
+      ]
     },
     {
       "name": "use-product-recommendations",
       "type": "registry:hook",
       "title": "useProductRecommendations",
       "description": "Lazily fetches similar products when the section scrolls into view, via an injected fetcher, so it never blocks the PDP.",
-      "dependencies": ["@channel3/sdk"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
       "files": [
         {
           "path": "registry/default/hooks/use-product-recommendations.ts",
@@ -58,7 +90,10 @@
       "title": "useAsyncOptions",
       "description": "Debounced typeahead loader for brand/category suggestions, delegating to an injected server-side fetcher.",
       "files": [
-        { "path": "registry/default/hooks/use-async-options.ts", "type": "registry:hook" }
+        {
+          "path": "registry/default/hooks/use-async-options.ts",
+          "type": "registry:hook"
+        }
       ]
     },
     {
@@ -66,10 +101,17 @@
       "type": "registry:hook",
       "title": "useProductSearch",
       "description": "Query + filter state, debounced auto-search, and infinite-scroll pagination via an injected search fetcher.",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["@channel3/search"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/search.json"
+      ],
       "files": [
-        { "path": "registry/default/hooks/use-product-search.ts", "type": "registry:hook" }
+        {
+          "path": "registry/default/hooks/use-product-search.ts",
+          "type": "registry:hook"
+        }
       ]
     },
     {
@@ -77,10 +119,17 @@
       "type": "registry:component",
       "title": "Price Range Gauge",
       "description": "Plots the current price against its historical range as low/typical/high zones with a tick at the current price.",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["@channel3/format"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/format.json"
+      ],
       "files": [
-        { "path": "registry/default/components/price-range-gauge.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/price-range-gauge.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -88,8 +137,15 @@
       "type": "registry:component",
       "title": "Price History Chart",
       "description": "Area chart of a product's price over time, built on the shadcn chart wrapper.",
-      "dependencies": ["@channel3/sdk", "recharts"],
-      "registryDependencies": ["chart", "empty", "@channel3/format"],
+      "dependencies": [
+        "@channel3/sdk",
+        "recharts"
+      ],
+      "registryDependencies": [
+        "chart",
+        "empty",
+        "https://ui.trychannel3.com/r/format.json"
+      ],
       "files": [
         {
           "path": "registry/default/components/price-history-chart.tsx",
@@ -102,10 +158,21 @@
       "type": "registry:component",
       "title": "Product Card",
       "description": "Borderless, image-forward product tile with hover image-swap and color swatches, for grids and carousels. Includes a loading skeleton.",
-      "dependencies": ["@channel3/sdk", "lucide-react"],
-      "registryDependencies": ["badge", "skeleton", "@channel3/format", "@channel3/variants"],
+      "dependencies": [
+        "@channel3/sdk",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "badge",
+        "skeleton",
+        "https://ui.trychannel3.com/r/format.json",
+        "https://ui.trychannel3.com/r/variants.json"
+      ],
       "files": [
-        { "path": "registry/default/components/product-card.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/product-card.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -113,10 +180,21 @@
       "type": "registry:component",
       "title": "Offers List",
       "description": "Compares merchant offers for a product, cheapest first, with affiliate-tracked buy links.",
-      "dependencies": ["@channel3/sdk", "lucide-react"],
-      "registryDependencies": ["badge", "button", "empty", "@channel3/format"],
+      "dependencies": [
+        "@channel3/sdk",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "badge",
+        "button",
+        "empty",
+        "https://ui.trychannel3.com/r/format.json"
+      ],
       "files": [
-        { "path": "registry/default/components/offers-list.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/offers-list.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -124,10 +202,18 @@
       "type": "registry:component",
       "title": "Image Gallery",
       "description": "Product image carousel with a synced thumbnail strip.",
-      "dependencies": ["@channel3/sdk", "lucide-react"],
-      "registryDependencies": ["carousel"],
+      "dependencies": [
+        "@channel3/sdk",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "carousel"
+      ],
       "files": [
-        { "path": "registry/default/components/image-gallery.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/image-gallery.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -135,10 +221,17 @@
       "type": "registry:component",
       "title": "Variant Selector",
       "description": "Renders every variant dimension as pills or swatches with three tiers of emphasis (purchasable, out-of-stock, not-offered).",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["@channel3/variants"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/variants.json"
+      ],
       "files": [
-        { "path": "registry/default/components/variant-selector.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/variant-selector.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -146,9 +239,14 @@
       "type": "registry:component",
       "title": "Product Attributes",
       "description": "Renders a product's extracted attributes (structured_attributes plus materials, gender, and age) as a two-column definition list.",
-      "dependencies": ["@channel3/sdk"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
       "files": [
-        { "path": "registry/default/components/product-attributes.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/product-attributes.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -156,10 +254,18 @@
       "type": "registry:component",
       "title": "Product Grid",
       "description": "Responsive grid of product cards with loading skeletons and an empty state.",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["empty", "@channel3/product-card"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "empty",
+        "https://ui.trychannel3.com/r/product-card.json"
+      ],
       "files": [
-        { "path": "registry/default/components/product-grid.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/product-grid.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -167,10 +273,18 @@
       "type": "registry:component",
       "title": "Product Carousel",
       "description": "Horizontally scrollable row of product cards with nav controls (e.g. \"More like this\").",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["carousel", "@channel3/product-card"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "carousel",
+        "https://ui.trychannel3.com/r/product-card.json"
+      ],
       "files": [
-        { "path": "registry/default/components/product-carousel.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/product-carousel.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -178,22 +292,27 @@
       "type": "registry:block",
       "title": "Product Details (PDP)",
       "description": "Compound product detail page: gallery, header (all brands), variant selection, offers, price history, description, attributes, and an optional 'you might also like' carousel. Pairs with useVariantSelection.",
-      "dependencies": ["@channel3/sdk"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
       "registryDependencies": [
         "separator",
-        "@channel3/image-gallery",
-        "@channel3/offers-list",
-        "@channel3/variant-selector",
-        "@channel3/price-range-gauge",
-        "@channel3/price-history-chart",
-        "@channel3/product-attributes",
-        "@channel3/product-recommendations",
-        "@channel3/use-product-recommendations",
-        "@channel3/use-variant-selection",
-        "@channel3/format"
+        "https://ui.trychannel3.com/r/image-gallery.json",
+        "https://ui.trychannel3.com/r/offers-list.json",
+        "https://ui.trychannel3.com/r/variant-selector.json",
+        "https://ui.trychannel3.com/r/price-range-gauge.json",
+        "https://ui.trychannel3.com/r/price-history-chart.json",
+        "https://ui.trychannel3.com/r/product-attributes.json",
+        "https://ui.trychannel3.com/r/product-recommendations.json",
+        "https://ui.trychannel3.com/r/use-product-recommendations.json",
+        "https://ui.trychannel3.com/r/use-variant-selection.json",
+        "https://ui.trychannel3.com/r/format.json"
       ],
       "files": [
-        { "path": "registry/default/components/product-details.tsx", "type": "registry:block" }
+        {
+          "path": "registry/default/components/product-details.tsx",
+          "type": "registry:block"
+        }
       ]
     },
     {
@@ -201,8 +320,13 @@
       "type": "registry:component",
       "title": "Product Recommendations",
       "description": "Lazy \"you might also like\" carousel for a PDP: defers the findSimilar fetch until it scrolls into view and hides itself when empty.",
-      "dependencies": ["@channel3/sdk"],
-      "registryDependencies": ["@channel3/product-carousel", "@channel3/use-product-recommendations"],
+      "dependencies": [
+        "@channel3/sdk"
+      ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/product-carousel.json",
+        "https://ui.trychannel3.com/r/use-product-recommendations.json"
+      ],
       "files": [
         {
           "path": "registry/default/components/product-recommendations.tsx",
@@ -215,10 +339,18 @@
       "type": "registry:component",
       "title": "Search Bar",
       "description": "Controlled search input with submit-on-Enter, a clear button, and an optional image-search trigger.",
-      "dependencies": ["lucide-react"],
-      "registryDependencies": ["button", "input"],
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "input"
+      ],
       "files": [
-        { "path": "registry/default/components/search-bar.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/search-bar.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -226,7 +358,11 @@
       "type": "registry:component",
       "title": "Product Filters",
       "description": "Compound, configurable filter panel (stacked sidebar or horizontal popover bar): price, gender, age, condition, availability, hex color palette with opt-in percentages, brand and category typeahead, and category-scoped attribute filters.",
-      "dependencies": ["@channel3/sdk", "lucide-react", "react-colorful"],
+      "dependencies": [
+        "@channel3/sdk",
+        "lucide-react",
+        "react-colorful"
+      ],
       "registryDependencies": [
         "accordion",
         "badge",
@@ -234,11 +370,14 @@
         "input",
         "slider",
         "popover",
-        "@channel3/search",
-        "@channel3/use-async-options"
+        "https://ui.trychannel3.com/r/search.json",
+        "https://ui.trychannel3.com/r/use-async-options.json"
       ],
       "files": [
-        { "path": "registry/default/components/product-filters.tsx", "type": "registry:component" }
+        {
+          "path": "registry/default/components/product-filters.tsx",
+          "type": "registry:component"
+        }
       ]
     },
     {
@@ -246,16 +385,22 @@
       "type": "registry:block",
       "title": "Product Search",
       "description": "Batteries-included search experience: search bar, configurable filters, and an infinite-scroll results grid wired to useProductSearch.",
-      "dependencies": ["@channel3/sdk", "lucide-react"],
+      "dependencies": [
+        "@channel3/sdk",
+        "lucide-react"
+      ],
       "registryDependencies": [
         "button",
-        "@channel3/product-grid",
-        "@channel3/search-bar",
-        "@channel3/product-filters",
-        "@channel3/use-product-search"
+        "https://ui.trychannel3.com/r/product-grid.json",
+        "https://ui.trychannel3.com/r/search-bar.json",
+        "https://ui.trychannel3.com/r/product-filters.json",
+        "https://ui.trychannel3.com/r/use-product-search.json"
       ],
       "files": [
-        { "path": "registry/default/components/product-search.tsx", "type": "registry:block" }
+        {
+          "path": "registry/default/components/product-search.tsx",
+          "type": "registry:block"
+        }
       ]
     },
     {
@@ -263,7 +408,10 @@
       "type": "registry:block",
       "title": "Channel3 — everything",
       "description": "Installs the full Channel3 UI kit: every component, hook, and lib in the registry.",
-      "registryDependencies": ["@channel3/product-search", "@channel3/product-details"],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/product-search.json",
+        "https://ui.trychannel3.com/r/product-details.json"
+      ],
       "files": []
     }
   ]

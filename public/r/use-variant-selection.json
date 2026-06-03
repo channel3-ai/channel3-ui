@@ -7,7 +7,7 @@
     "@channel3/sdk"
   ],
   "registryDependencies": [
-    "@channel3/variants"
+    "https://ui.trychannel3.com/r/variants.json"
   ],
   "files": [
     {
