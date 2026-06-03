@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+.DS_Store
+
+# Gitignored skills logic (kept locally, not distributed)
+skills-lock.json
+/.agents

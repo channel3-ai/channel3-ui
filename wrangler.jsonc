@@ -1,0 +1,7 @@
+{
+  "name": "channel3-ui",
+  "compatibility_date": "2026-06-03",
+  "assets": {
+    "directory": "./dist"
+  }
+}

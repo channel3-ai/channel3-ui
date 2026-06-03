@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "product-grid",
+  "title": "Product Grid",
+  "description": "Responsive grid of product cards with loading skeletons and an empty state.",
+  "dependencies": [
+    "@channel3/sdk"
+  ],
+  "registryDependencies": [
+    "empty",
+    "@channel3/product-card"
+  ],
+  "files": [
+    {
+      "path": "registry/default/components/product-grid.tsx",
+      "content": "import * as React from \"react\";\nimport type { ProductDetail } from \"@channel3/sdk/resources\";\n\nimport { cn } from \"@/lib/utils\";\nimport { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from \"@/components/ui/empty\";\nimport { ProductCard, ProductCardSkeleton } from \"@/registry/default/components/product-card\";\n\ntype OptionValue = ProductDetail.Variants.Option.Value;\n\nexport interface ProductGridProps extends Omit<React.ComponentProps<\"div\">, \"onSelect\"> {\n  /** Products to render, typically a page of search results. */\n  products: ReadonlyArray<ProductDetail>;\n  /** Forwarded to each {@link ProductCard}. */\n  onSelect?: (product: ProductDetail) => void;\n  /** Forwarded to each {@link ProductCard} for color-swatch navigation. */\n  onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;\n  /** Forwarded to each {@link ProductCard}; show color swatches below the price. */\n  showSwatches?: boolean;\n  /** Show skeleton placeholders instead of products. */\n  loading?: boolean;\n  /** Number of skeletons to render while loading. */\n  skeletonCount?: number;\n  /** Custom node rendered when there are no products and not loading. */\n  emptyState?: React.ReactNode;\n  /** Locale override for price formatting. */\n  locale?: string;\n}\n\n/** First row of cards (widest layout) loaded eagerly as likely-LCP imagery. */\nconst PRIORITY_COUNT = 4;\n\n/** Responsive grid of {@link ProductCard}s with loading and empty states. */\nexport function ProductGrid({\n  products,\n  onSelect,\n  onSelectVariant,\n  showSwatches = true,\n  loading = false,\n  skeletonCount = 8,\n  emptyState,\n  locale,\n  className,\n  ...props\n}: ProductGridProps) {\n  const gridClass = cn(\n    \"grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4\",\n    className,\n  );\n\n  if (loading) {\n    return (\n      <div data-slot=\"product-grid\" className={gridClass} {...props}>\n        {Array.from({ length: skeletonCount }, (_, index) => (\n          <ProductCardSkeleton key={index} />\n        ))}\n      </div>\n    );\n  }\n\n  if (products.length === 0) {\n    return (\n      <div data-slot=\"product-grid\" {...props}>\n        {emptyState ?? (\n          <Empty>\n            <EmptyHeader>\n              <EmptyTitle>No products found</EmptyTitle>\n              <EmptyDescription>Try a different search or adjust your filters.</EmptyDescription>\n            </EmptyHeader>\n          </Empty>\n        )}\n      </div>\n    );\n  }\n\n  return (\n    <div data-slot=\"product-grid\" className={gridClass} {...props}>\n      {products.map((product, index) => (\n        <ProductCard\n          key={product.id}\n          product={product}\n          onSelect={onSelect}\n          onSelectVariant={onSelectVariant ? (value) => onSelectVariant(product, value) : undefined}\n          showSwatches={showSwatches}\n          priority={index < PRIORITY_COUNT}\n          locale={locale}\n        />\n      ))}\n    </div>\n  );\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}
