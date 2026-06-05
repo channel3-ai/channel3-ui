@@ -183,6 +183,7 @@ the consumer's own copy.
 | `search-bar` | component | Controlled search input with clear and optional image search |
 | `product-filters` | component | Configurable filter panel — stacked sidebar or horizontal popover bar |
 | `use-product-search` | hook | Query/filter state, debounced search, infinite-scroll pagination |
+| `use-infinite-scroll` | hook | Headless token-paginated infinite scroll for any list, with a sentinel ref |
 | `use-variant-selection` | hook | Selection state + server-side re-resolution |
 | `use-product-recommendations` | hook | Lazy similar-products fetch via an injected fetcher |
 | `use-async-options` | hook | Debounced typeahead loader for brand/category suggestions |
