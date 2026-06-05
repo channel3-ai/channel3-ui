@@ -127,8 +127,10 @@ source to keep that boundary intact — only `import type` is allowed.
 
 > **Wiring it into your framework.** Connecting these server fetchers to Next.js
 > Route Handlers, TanStack Start server functions, or React Router actions — plus
-> variant re-resolution and recommendations — is covered end-to-end by the
-> companion **Channel3 UI skill**, so it's kept out of this README.
+> variant re-resolution and recommendations — is covered by the
+> [Channel3 API skill](https://github.com/channel3-ai/skills) (`channel3-api`),
+> which teaches AI coding agents the API, this component library, and the variant
+> model. Install it with `npx skills add channel3-ai/skills --skill channel3-api`.
 
 ## Updating
 
