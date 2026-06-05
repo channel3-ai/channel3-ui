@@ -6,6 +6,10 @@ import {
   type SearchFiltersState,
   toSearchFilters,
 } from "@/registry/default/lib/search";
+import {
+  type PageFetcher,
+  useInfiniteScroll,
+} from "@/registry/default/hooks/use-infinite-scroll";
 
 /** Arguments handed to a {@link SearchFetcher}. */
 export interface SearchFetchInput {
@@ -97,9 +101,11 @@ function hasCriteria(query: string, image: ImageQuery | null): boolean {
 }
 
 /**
- * Orchestrates product search: query + filter state, debounced auto-search,
- * infinite-scroll pagination via an injected fetcher, and a sentinel ref. Keeps
- * the API key server-side and ignores stale responses so the latest search wins.
+ * Orchestrates product search: query + filter state, debounced auto-search, and
+ * a sentinel ref for infinite scroll. Pagination is delegated to
+ * {@link useInfiniteScroll}, seeded with each new first page. Keeps the API key
+ * server-side via the injected fetcher and ignores stale responses so the
+ * latest search wins.
  */
 export function useProductSearch({
   fetchSearch,
@@ -113,20 +119,16 @@ export function useProductSearch({
   const [filters, setFiltersState] = React.useState<SearchFiltersState>(initialFilters);
   const [image, setImage] = React.useState<ImageQuery | null>(null);
 
-  const [results, setResults] = React.useState<ProductDetail[]>(EMPTY);
-  const [pageToken, setPageToken] = React.useState<string | null>(null);
-  const [hasMore, setHasMore] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
-  const [error, setError] = React.useState<unknown>(null);
+  const [firstPageError, setFirstPageError] = React.useState<unknown>(null);
 
   // A monotonically increasing token identifying the current search criteria.
-  // Page loads carry the token they belong to so stale pages are discarded.
+  // First-page loads carry the token they belong to so stale pages are discarded.
   const searchId = React.useRef(0);
   // Bumped to (re)trigger a search; lets `submit` re-run identical criteria.
   const [submitNonce, setSubmitNonce] = React.useState(0);
 
-  // Latest values for the imperative loadMore closure.
+  // Latest values for the imperative fetch closures.
   const queryRef = React.useRef(query);
   const filtersRef = React.useRef(filters);
   const imageRef = React.useRef(image);
@@ -134,21 +136,45 @@ export function useProductSearch({
   filtersRef.current = filters;
   imageRef.current = image;
 
+  const fetchPage = React.useCallback<PageFetcher<ProductDetail>>(
+    (pageToken) =>
+      Promise.resolve(
+        fetchSearch({
+          query: queryRef.current,
+          imageUrl: imageRef.current?.imageUrl,
+          base64Image: imageRef.current?.base64Image,
+          filters: toSearchFilters(filtersRef.current),
+          pageToken,
+        }),
+      ).then((page) => ({
+        items: page.products,
+        nextPageToken: page.nextPageToken,
+      })),
+    [fetchSearch],
+  );
+
+  // useInfiniteScroll owns the paged list (seed + appended pages). Each first
+  // page is pushed in via `reset`, which also cancels any in-flight pagination
+  // from the previous search, so the latest seed always wins.
+  const { reset: resetPages, ...infinite } = useInfiniteScroll<ProductDetail>({
+    initialItems: EMPTY,
+    initialPageToken: null,
+    fetchPage,
+  });
+
   const runFirstPage = React.useCallback(() => {
     const q = queryRef.current;
     const img = imageRef.current;
     if (!hasCriteria(q, img)) {
       searchId.current++;
-      setResults(EMPTY);
-      setPageToken(null);
-      setHasMore(false);
+      resetPages();
       setIsLoading(false);
-      setError(null);
+      setFirstPageError(null);
       return;
     }
     const id = ++searchId.current;
     setIsLoading(true);
-    setError(null);
+    setFirstPageError(null);
     void Promise.resolve(
       fetchSearch({
         query: q,
@@ -161,24 +187,21 @@ export function useProductSearch({
         if (id !== searchId.current) {
           return;
         }
-        setResults(page.products);
-        setPageToken(page.nextPageToken ?? null);
-        setHasMore(Boolean(page.nextPageToken));
+        resetPages({ items: page.products, nextPageToken: page.nextPageToken });
       })
       .catch((caught: unknown) => {
         if (id !== searchId.current) {
           return;
         }
-        setError(caught);
-        setResults(EMPTY);
-        setHasMore(false);
+        setFirstPageError(caught);
+        resetPages();
       })
       .finally(() => {
         if (id === searchId.current) {
           setIsLoading(false);
         }
       });
-  }, [fetchSearch]);
+  }, [fetchSearch, resetPages]);
 
   const setQuery = React.useCallback((next: string) => setQueryState(next), []);
   const setFilters = React.useCallback((next: SearchFiltersState) => setFiltersState(next), []);
@@ -202,70 +225,15 @@ export function useProductSearch({
     return () => clearTimeout(timer);
   }, [query, filters, image, submitNonce, autoSearch, debounceMs, runFirstPage, searchOnMount]);
 
-  const loadMore = React.useCallback(() => {
-    if (isLoading || isLoadingMore || !hasMore || !pageToken) {
-      return;
-    }
-    const id = searchId.current;
-    setIsLoadingMore(true);
-    void Promise.resolve(
-      fetchSearch({
-        query: queryRef.current,
-        imageUrl: imageRef.current?.imageUrl,
-        base64Image: imageRef.current?.base64Image,
-        filters: toSearchFilters(filtersRef.current),
-        pageToken,
-      }),
-    )
-      .then((page) => {
-        if (id !== searchId.current) {
-          return;
-        }
-        setResults((prev) => [...prev, ...page.products]);
-        setPageToken(page.nextPageToken ?? null);
-        setHasMore(Boolean(page.nextPageToken));
-      })
-      .catch((caught: unknown) => {
-        if (id !== searchId.current) {
-          return;
-        }
-        setError(caught);
-      })
-      .finally(() => {
-        if (id === searchId.current) {
-          setIsLoadingMore(false);
-        }
-      });
-  }, [fetchSearch, hasMore, isLoading, isLoadingMore, pageToken]);
-
-  const [sentinel, setSentinel] = React.useState<Element | null>(null);
-  const sentinelRef = React.useCallback((node: Element | null) => setSentinel(node), []);
-
-  React.useEffect(() => {
-    if (!sentinel || !hasMore || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        loadMore();
-      }
-    });
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [sentinel, hasMore, loadMore]);
-
   const reset = React.useCallback(() => {
     searchId.current++;
     setQueryState("");
     setFiltersState(EMPTY_FILTERS);
     setImage(null);
-    setResults(EMPTY);
-    setPageToken(null);
-    setHasMore(false);
-    setError(null);
+    resetPages();
+    setFirstPageError(null);
     setIsLoading(false);
-    setIsLoadingMore(false);
-  }, []);
+  }, [resetPages]);
 
   return {
     query,
@@ -274,13 +242,13 @@ export function useProductSearch({
     setFilters,
     searchByImage,
     image,
-    results,
+    results: infinite.items,
     isLoading,
-    isLoadingMore,
-    error,
-    hasMore,
-    loadMore,
-    sentinelRef,
+    isLoadingMore: infinite.isLoadingMore,
+    error: firstPageError ?? infinite.error,
+    hasMore: infinite.hasMore,
+    loadMore: infinite.loadMore,
+    sentinelRef: infinite.sentinelRef,
     submit,
     reset,
   };

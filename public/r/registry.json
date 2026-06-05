@@ -97,6 +97,18 @@
       ]
     },
     {
+      "name": "use-infinite-scroll",
+      "type": "registry:hook",
+      "title": "useInfiniteScroll",
+      "description": "Headless infinite-scroll pagination over a token-paged list: seeds an initial page, appends subsequent pages via an injected fetcher, and exposes a sentinel ref.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-infinite-scroll.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
       "name": "use-product-search",
       "type": "registry:hook",
       "title": "useProductSearch",
@@ -105,7 +117,8 @@
         "@channel3/sdk"
       ],
       "registryDependencies": [
-        "https://ui.trychannel3.com/r/search.json"
+        "https://ui.trychannel3.com/r/search.json",
+        "https://ui.trychannel3.com/r/use-infinite-scroll.json"
       ],
       "files": [
         {

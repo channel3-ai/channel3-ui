@@ -26,7 +26,7 @@ function GalleryImage({
   const [loaded, setLoaded] = React.useState(false);
   if (failed) {
     return (
-      <div className="flex size-full items-center justify-center text-muted-foreground">
+      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
         <ImageOff className="size-8" aria-hidden />
       </div>
     );
@@ -39,7 +39,7 @@ function GalleryImage({
       fetchPriority={priority ? "high" : undefined}
       decoding="async"
       className={cn(
-        "size-full object-cover transition-opacity duration-300",
+        "absolute inset-0 size-full object-cover transition-opacity duration-300",
         loaded ? "opacity-100" : "opacity-0",
       )}
       onLoad={() => setLoaded(true)}
@@ -104,7 +104,14 @@ export function ImageGallery({ images, alt, previewSrc, className, ...props }: I
           <CarouselContent>
             {images.map((image, index) => (
               <CarouselItem key={`${image.url}-${index}`}>
-                <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+                <div className="relative overflow-hidden rounded-lg bg-muted">
+                  {/* Invisible sizer: a square, plus the thumbnail strip's own
+                      height when there's no strip — so a single image fills the
+                      same footprint as a multi-image gallery. */}
+                  <div aria-hidden className="invisible flex flex-col gap-2">
+                    <div className="aspect-square" />
+                    {multiple ? null : <div className="size-14" />}
+                  </div>
                   <GalleryImage image={image} alt={alt} priority={index === 0} />
                 </div>
               </CarouselItem>
