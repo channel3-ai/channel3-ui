@@ -1,0 +1,3 @@
+# The public face of ui.trychannel3.com is the shadcn registry, not the dev
+# playground. Send the bare domain to the registry index.
+/    /r/registry.json    301

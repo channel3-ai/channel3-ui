@@ -62,6 +62,11 @@ export interface ProductSearchProps extends Omit<React.ComponentProps<"div">, "o
   imageSearch?: boolean;
   /** Run an initial search on mount (e.g. show a default page). */
   searchOnMount?: boolean;
+  /**
+   * Load more pages via infinite scroll as the list scrolls into view. Set to
+   * `false` to show only the first page (no sentinel). Defaults to `true`.
+   */
+  paginate?: boolean;
   /** Initial query text. */
   initialQuery?: string;
   /** Placeholder for the search input. */
@@ -92,6 +97,7 @@ export function ProductSearch({
   colorPercentages = false,
   imageSearch = false,
   searchOnMount = false,
+  paginate = true,
   initialQuery = "",
   placeholder,
   onSelect,
@@ -159,7 +165,9 @@ export function ProductSearch({
       {isLoadingMore ? (
         <p className="text-center text-sm text-muted-foreground">Loading more…</p>
       ) : null}
-      {hasMore ? <div ref={sentinelRef} aria-hidden className="h-px" /> : null}
+      {paginate && hasMore ? (
+        <div ref={sentinelRef} aria-hidden className="h-px" />
+      ) : null}
     </div>
   );
 
