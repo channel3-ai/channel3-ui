@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   countActiveFilters,
   EMPTY_FILTERS,
+  facetCounts,
   isValidHex,
   normalizeHex,
   type SearchFiltersState,
@@ -56,8 +57,24 @@ describe("toSearchFilters", () => {
   });
 });
 
+describe("facetCounts", () => {
+  it("counts active values per facet", () => {
+    expect(facetCounts(EMPTY_FILTERS)).toMatchObject({ price: 0, age: 0, attributes: 0 });
+    expect(
+      facetCounts(
+        state({
+          price: { minPrice: 10, maxPrice: null },
+          age: ["kids", "adult"],
+          colors: [{ hex: "#000000" }],
+          attributes: { color: ["Black", "Blue"], material: ["Leather"] },
+        }),
+      ),
+    ).toMatchObject({ price: 1, age: 2, colors: 1, attributes: 3 });
+  });
+});
+
 describe("countActiveFilters", () => {
-  it("counts each active facet and value", () => {
+  it("sums every active facet and value", () => {
     expect(countActiveFilters(EMPTY_FILTERS)).toBe(0);
     expect(
       countActiveFilters(

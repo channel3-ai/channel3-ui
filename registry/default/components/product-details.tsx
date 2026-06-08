@@ -11,7 +11,7 @@ import { ProductAttributes } from "@/registry/default/components/product-attribu
 import { ProductRecommendations } from "@/registry/default/components/product-recommendations";
 import { VariantSelector } from "@/registry/default/components/variant-selector";
 import type { SimilarFetcher } from "@/registry/default/hooks/use-product-recommendations";
-import { formatCurrency, formatPrice, isOnSale, leadOffer } from "@/registry/default/lib/format";
+import { formatCurrency, formatPrice, isInStock, isOnSale, leadOffer } from "@/registry/default/lib/format";
 
 type OptionValue = ProductDetail.Variants.Option.Value;
 
@@ -205,7 +205,7 @@ function Offers({ className, ...rest }: React.ComponentProps<"div">) {
   // Only frame this as "Available at" when something is actually buyable; when
   // every offer is out of stock, OffersList's own "Out of stock" header carries
   // the context and a contradictory "Available at" heading is dropped.
-  const hasInStock = offers.some((offer) => offer.availability === "InStock");
+  const hasInStock = offers.some((offer) => isInStock(offer.availability));
   return (
     <div className={cn("flex flex-col gap-2", className)} {...rest}>
       {hasInStock ? (

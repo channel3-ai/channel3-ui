@@ -6,8 +6,8 @@ import {
   discountPercent,
   formatCurrency,
   formatDomain,
+  isInStock,
   isOnSale,
-  isPurchasable,
   isSoldOut,
   leadOffer,
   pickImage,
@@ -57,11 +57,13 @@ describe("formatDomain", () => {
 });
 
 describe("availability", () => {
-  it("treats sellable statuses as purchasable", () => {
-    expect(isPurchasable("InStock")).toBe(true);
-    expect(isPurchasable("PreOrder")).toBe(true);
-    expect(isPurchasable("OutOfStock")).toBe(false);
-    expect(isPurchasable("Discontinued")).toBe(false);
+  it("treats only InStock and LimitedAvailability as in stock", () => {
+    expect(isInStock("InStock")).toBe(true);
+    expect(isInStock("LimitedAvailability")).toBe(true);
+    expect(isInStock("PreOrder")).toBe(false);
+    expect(isInStock("BackOrder")).toBe(false);
+    expect(isInStock("OutOfStock")).toBe(false);
+    expect(isInStock("Discontinued")).toBe(false);
   });
 
   it("labels statuses", () => {

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { formatCurrency, formatDomain, formatPrice, isOnSale, leadOffer } from "@/registry/default/lib/format";
+import { formatCurrency, formatDomain, formatPrice, isInStock, isOnSale } from "@/registry/default/lib/format";
 
 export interface OffersListProps extends React.ComponentProps<"div"> {
   /** Merchant offers for a product, from `ProductDetail.offers`. */
@@ -37,14 +37,14 @@ export function OffersList({
   className,
   ...props
 }: OffersListProps) {
-  const { inStock, outOfStock } = React.useMemo(() => {
+  // Sort once, then split: the cheapest in-stock offer (or, failing that, the
+  // cheapest overall) is the lead, matching `leadOffer` without a second sort.
+  const { inStock, outOfStock, lead } = React.useMemo(() => {
     const sorted = [...offers].sort(byPrice);
-    return {
-      inStock: sorted.filter((offer) => offer.availability === "InStock"),
-      outOfStock: sorted.filter((offer) => offer.availability !== "InStock"),
-    };
+    const purchasable = sorted.filter((offer) => isInStock(offer.availability));
+    const unavailable = sorted.filter((offer) => !isInStock(offer.availability));
+    return { inStock: purchasable, outOfStock: unavailable, lead: purchasable[0] ?? sorted[0] };
   }, [offers]);
-  const lead = leadOffer(offers);
 
   if (offers.length === 0) {
     return (

@@ -12,7 +12,9 @@ const BASE_URL = process.env.REGISTRY_BASE_URL ?? "https://ui.trychannel3.com/r"
 const NAMESPACE = "@channel3/";
 
 function rewriteDep(dep) {
-  if (typeof dep !== "string" || !dep.startsWith(NAMESPACE)) return dep;
+  if (typeof dep !== "string" || !dep.startsWith(NAMESPACE)) {
+    return dep;
+  }
   const name = dep.slice(NAMESPACE.length);
   return `${BASE_URL}/${name}.json`;
 }
@@ -31,7 +33,9 @@ async function main() {
     let changed = false;
 
     for (const item of items) {
-      if (!Array.isArray(item.registryDependencies)) continue;
+      if (!Array.isArray(item.registryDependencies)) {
+        continue;
+      }
       const next = item.registryDependencies.map(rewriteDep);
       const delta = next.filter((d, i) => d !== item.registryDependencies[i]).length;
       if (delta > 0) {

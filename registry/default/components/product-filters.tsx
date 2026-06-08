@@ -18,9 +18,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   AGE_OPTIONS,
   AVAILABILITY_OPTIONS,
+  categoryAttributeGroups,
   CONDITION_OPTIONS,
   countActiveFilters,
+  countCategoryAttributes,
+  deriveAttributes,
   EMPTY_FILTERS,
+  facetCounts,
   GENDER_OPTIONS,
   normalizeHex,
   type SearchFiltersState,
@@ -725,31 +729,6 @@ function Brands() {
   );
 }
 
-/**
- * Recompute the derived attribute fields from the selected categories and their
- * (state-cached) attribute definitions: the per-category map (in category
- * order) and a pruning of any selected values whose attribute no longer applies.
- */
-function deriveAttributes(
-  categories: CategorySummary[],
-  byCategory: Record<string, CategoryAttribute[]>,
-  attributes: Record<string, string[]>,
-): Pick<SearchFiltersState, "attributesByCategory" | "attributes"> {
-  const ordered: Record<string, CategoryAttribute[]> = {};
-  const valid = new Set<string>();
-  for (const category of categories) {
-    const defs = byCategory[category.slug] ?? [];
-    ordered[category.slug] = defs;
-    for (const attribute of defs) {
-      valid.add(attribute.slug);
-    }
-  }
-  const prunedAttributes = Object.fromEntries(
-    Object.entries(attributes).filter(([key]) => valid.has(key)),
-  );
-  return { attributesByCategory: ordered, attributes: prunedAttributes };
-}
-
 function CategoryControl({ inline = false, autoFocus = false }: { inline?: boolean; autoFocus?: boolean }) {
   const { filters, update, searchCategories, getCategory } = useProductFilters(
     "ProductFiltersCategory",
@@ -851,34 +830,6 @@ function CategoryField() {
   );
 }
 
-function attributeHasValues(attribute: CategoryAttribute) {
-  return (attribute.values?.length ?? 0) > 0;
-}
-
-/** Selected categories that expose at least one attribute filter. */
-function categoryAttributeGroups(filters: SearchFiltersState) {
-  const rendered = new Set<string>();
-  return filters.categories
-    .map((category) => {
-      const attributes = (filters.attributesByCategory[category.slug] ?? []).filter(
-        (attribute) => attributeHasValues(attribute) && !rendered.has(attribute.slug),
-      );
-      attributes.forEach((attribute) => rendered.add(attribute.slug));
-      return { category, attributes };
-    })
-    .filter((group) => group.attributes.length > 0);
-}
-
-function countCategoryAttributes(
-  filters: SearchFiltersState,
-  attributes: CategoryAttribute[],
-) {
-  return attributes.reduce(
-    (sum, attribute) => sum + (filters.attributes[attribute.slug]?.length ?? 0),
-    0,
-  );
-}
-
 function AttributeField({
   attribute,
   showLabel = true,
@@ -965,22 +916,6 @@ function ActiveSummary({ className, ...rest }: React.ComponentProps<"div">) {
       </Button>
     </div>
   );
-}
-
-/** Active-filter count for one facet, used by the popover-bar triggers. */
-function facetCounts(filters: SearchFiltersState) {
-  const attributes = Object.values(filters.attributes).reduce((sum, values) => sum + values.length, 0);
-  return {
-    price: filters.price.minPrice != null || filters.price.maxPrice != null ? 1 : 0,
-    gender: filters.gender ? 1 : 0,
-    age: filters.age.length,
-    condition: filters.condition ? 1 : 0,
-    availability: filters.availability.length,
-    colors: filters.colors.length,
-    brands: filters.brands.length,
-    categories: filters.categories.length,
-    attributes,
-  };
 }
 
 function FacetPopover({
