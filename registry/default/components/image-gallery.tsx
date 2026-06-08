@@ -24,6 +24,13 @@ function GalleryImage({
 }) {
   const [failed, setFailed] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
+  // A server-rendered image can finish decoding before hydration, so `onLoad`
+  // never fires on the client — reveal it on mount if it's already complete.
+  const revealIfComplete = React.useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete) {
+      setLoaded(true);
+    }
+  }, []);
   if (failed) {
     return (
       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
@@ -42,6 +49,7 @@ function GalleryImage({
         "absolute inset-0 size-full object-cover transition-opacity duration-300",
         loaded ? "opacity-100" : "opacity-0",
       )}
+      ref={revealIfComplete}
       onLoad={() => setLoaded(true)}
       onError={() => setFailed(true)}
     />

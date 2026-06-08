@@ -43,16 +43,19 @@ export function formatDomain(domain: string): string {
   return domain.replace(/^https?:\/\//, "").replace(/^www\./, "");
 }
 
-const PURCHASABLE: ReadonlySet<AvailabilityStatus> = new Set<AvailabilityStatus>([
+const IN_STOCK: ReadonlySet<AvailabilityStatus> = new Set<AvailabilityStatus>([
   "InStock",
   "LimitedAvailability",
-  "PreOrder",
-  "BackOrder",
 ]);
 
-/** Whether a status represents something a shopper can still buy. */
-export function isPurchasable(status: AvailabilityStatus): boolean {
-  return PURCHASABLE.has(status);
+/**
+ * The single in-stock definition used across the kit: a status is "in stock"
+ * when it's `InStock` or `LimitedAvailability`. Everything else (pre-order,
+ * back-order, sold out, …) reads as not in stock for lead-offer selection,
+ * sold-out badges, and variant emphasis.
+ */
+export function isInStock(status: AvailabilityStatus): boolean {
+  return IN_STOCK.has(status);
 }
 
 const AVAILABILITY_LABELS: Record<AvailabilityStatus, string> = {
@@ -150,10 +153,10 @@ export function leadOffer(offers: ReadonlyArray<ProductOffer> | undefined): Prod
     return undefined;
   }
   const byPrice = [...offers].sort((a, b) => a.price.price - b.price.price);
-  return byPrice.find((offer) => offer.availability === "InStock") ?? byPrice[0];
+  return byPrice.find((offer) => isInStock(offer.availability)) ?? byPrice[0];
 }
 
 /** True when offers exist but none are in stock. */
 export function isSoldOut(offers: ReadonlyArray<ProductOffer> | undefined): boolean {
-  return Boolean(offers && offers.length > 0 && !offers.some((o) => o.availability === "InStock"));
+  return Boolean(offers && offers.length > 0 && !offers.some((o) => isInStock(o.availability)));
 }

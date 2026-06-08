@@ -37,6 +37,30 @@
       ]
     },
     {
+      "name": "use-latest-request",
+      "type": "registry:hook",
+      "title": "useLatestRequest",
+      "description": "Latest-wins guard for overlapping async work: tracks the most recent request and drops stale responses from superseded ones.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-latest-request.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-in-viewport",
+      "type": "registry:hook",
+      "title": "useInViewport",
+      "description": "Fires a callback when an element enters the viewport via IntersectionObserver, with one-shot and repeating modes for lazy sections and infinite-scroll sentinels.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-in-viewport.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
       "name": "use-variant-selection",
       "type": "registry:hook",
       "title": "useVariantSelection",
@@ -45,7 +69,8 @@
         "@channel3/sdk"
       ],
       "registryDependencies": [
-        "https://ui.trychannel3.com/r/variants.json"
+        "https://ui.trychannel3.com/r/variants.json",
+        "https://ui.trychannel3.com/r/use-latest-request.json"
       ],
       "files": [
         {
@@ -77,6 +102,10 @@
       "dependencies": [
         "@channel3/sdk"
       ],
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/use-in-viewport.json",
+        "https://ui.trychannel3.com/r/use-latest-request.json"
+      ],
       "files": [
         {
           "path": "registry/default/hooks/use-product-recommendations.ts",
@@ -89,6 +118,9 @@
       "type": "registry:hook",
       "title": "useAsyncOptions",
       "description": "Debounced typeahead loader for brand/category suggestions, delegating to an injected server-side fetcher.",
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/use-latest-request.json"
+      ],
       "files": [
         {
           "path": "registry/default/hooks/use-async-options.ts",
@@ -101,6 +133,10 @@
       "type": "registry:hook",
       "title": "useInfiniteScroll",
       "description": "Headless infinite-scroll pagination over a token-paged list: seeds an initial page, appends subsequent pages via an injected fetcher, and exposes a sentinel ref.",
+      "registryDependencies": [
+        "https://ui.trychannel3.com/r/use-in-viewport.json",
+        "https://ui.trychannel3.com/r/use-latest-request.json"
+      ],
       "files": [
         {
           "path": "registry/default/hooks/use-infinite-scroll.ts",
@@ -118,7 +154,8 @@
       ],
       "registryDependencies": [
         "https://ui.trychannel3.com/r/search.json",
-        "https://ui.trychannel3.com/r/use-infinite-scroll.json"
+        "https://ui.trychannel3.com/r/use-infinite-scroll.json",
+        "https://ui.trychannel3.com/r/use-latest-request.json"
       ],
       "files": [
         {

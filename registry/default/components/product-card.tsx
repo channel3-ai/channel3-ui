@@ -69,6 +69,14 @@ export function ProductCard({
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [preview, setPreview] = React.useState<string | null>(null);
 
+  // A server-rendered image can finish decoding before hydration, so `onLoad`
+  // never fires on the client — reveal it on mount if it's already complete.
+  const revealIfComplete = React.useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete) {
+      setImageLoaded(true);
+    }
+  }, []);
+
   const image = pickImage(product.images, { preferCleaned: true });
   const secondImage = pickHoverImage(product.images, { excludeUrl: image?.url });
   const brand = product.brands?.[0]?.name;
@@ -107,6 +115,7 @@ export function ProductCard({
             // single-image case needs a hover affordance.
             secondImage ? null : "group-hover:scale-105",
           )}
+          ref={revealIfComplete}
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageFailed(true)}
         />

@@ -1,6 +1,9 @@
 import * as React from "react";
 import type { ProductDetail, SearchFilters } from "@channel3/sdk/resources";
 
+import { useInViewport } from "@/registry/default/hooks/use-in-viewport";
+import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
+
 /** Arguments handed to a {@link SimilarFetcher}. */
 export interface SimilarFetchInput {
   /** Canonical id of the product to find neighbors for (the PDP's `product.id`). */
@@ -72,58 +75,36 @@ export function useProductRecommendations({
   const [node, setNode] = React.useState<Element | null>(null);
   const ref = React.useCallback((next: Element | null) => setNode(next), []);
 
-  // Reset when the product changes so a new PDP shows fresh recommendations.
+  const { run, cancel } = useLatestRequest();
+
+  // Reset when the product changes so a new PDP shows fresh recommendations,
+  // discarding any in-flight fetch for the previous product.
   React.useEffect(() => {
+    cancel();
     setProducts(EMPTY);
     setError(null);
     setHasLoaded(false);
     setInView(eager);
-  }, [productId, eager]);
+  }, [productId, eager, cancel]);
 
   // Observe the section; flip `inView` the first time it's visible.
-  React.useEffect(() => {
-    if (eager || inView || !node || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        setInView(true);
-        observer.disconnect();
-      }
-    });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [node, eager, inView]);
-
-  const requestId = React.useRef(0);
+  useInViewport(node, () => setInView(true), { enabled: !eager && !inView, once: true });
 
   React.useEffect(() => {
     if (!enabled || !inView || !productId) {
       return;
     }
-    const id = ++requestId.current;
     setIsLoading(true);
     setError(null);
-    void Promise.resolve(fetchSimilar({ productId, limit, filters }))
-      .then((result) => {
-        if (id !== requestId.current) {
-          return;
-        }
+    run(Promise.resolve(fetchSimilar({ productId, limit, filters })), {
+      onResolve: (result) => {
         setProducts(result);
         setHasLoaded(true);
-      })
-      .catch((caught: unknown) => {
-        if (id !== requestId.current) {
-          return;
-        }
-        setError(caught);
-      })
-      .finally(() => {
-        if (id === requestId.current) {
-          setIsLoading(false);
-        }
-      });
-  }, [enabled, inView, productId, limit, filters, fetchSimilar]);
+      },
+      onReject: (caught) => setError(caught),
+      onSettle: () => setIsLoading(false),
+    });
+  }, [enabled, inView, productId, limit, filters, fetchSimilar, run]);
 
   return { ref, products, isLoading, error, hasLoaded };
 }

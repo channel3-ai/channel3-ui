@@ -1,5 +1,5 @@
 import type { ProductDetail } from "@channel3/sdk/resources";
-import { isPurchasable } from "@/registry/default/lib/format";
+import { isInStock } from "@/registry/default/lib/format";
 
 type Variants = ProductDetail.Variants;
 type Option = ProductDetail.Variants.Option;
@@ -31,7 +31,7 @@ export function valueState(value: OptionValue, isSelected: boolean): ValueState 
   if (!value.exists) {
     return "notOffered";
   }
-  if (value.available && !isPurchasable(value.available)) {
+  if (value.available && !isInStock(value.available)) {
     return "outOfStock";
   }
   return "available";

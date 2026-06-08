@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { ProductDetail } from "@channel3/sdk/resources";
 
+import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
 import { mergeSelection, selectionFromVariants } from "@/registry/default/lib/variants";
 
 type OptionValue = ProductDetail.Variants.Option.Value;
@@ -81,19 +82,24 @@ export function useVariantSelection({
   const [isResolving, setIsResolving] = React.useState(false);
   const [error, setError] = React.useState<unknown>(null);
 
-  // Adopt a new product when the consumer swaps the input (e.g. new search hit).
+  // Ignore stale resolves when selections fire in quick succession or the input
+  // product is swapped mid-resolve.
+  const { run, cancel } = useLatestRequest();
+
+  // Adopt a new product when the consumer swaps the input (e.g. new search hit),
+  // discarding any in-flight resolve for the previous product so it can't
+  // clobber the freshly-swapped one.
   const lastInputId = React.useRef(initialProduct.id);
   React.useEffect(() => {
     if (initialProduct.id !== lastInputId.current) {
       lastInputId.current = initialProduct.id;
+      cancel();
       setProduct(initialProduct);
       setPending(EMPTY_SELECTION);
       setError(null);
+      setIsResolving(false);
     }
-  }, [initialProduct]);
-
-  // Ignore stale resolves when selections fire in quick succession.
-  const requestId = React.useRef(0);
+  }, [initialProduct, cancel]);
 
   const selection = React.useMemo(() => {
     const base = product.variants ? selectionFromVariants(product.variants) : EMPTY_SELECTION;
@@ -113,41 +119,29 @@ export function useVariantSelection({
         return;
       }
 
-      const id = ++requestId.current;
       setIsResolving(true);
-      void Promise.resolve(
-        resolve({ product, optionName, value, selection: nextSelection }),
-      )
-        .then((resolved) => {
-          if (id !== requestId.current) {
-            return;
-          }
+      run(Promise.resolve(resolve({ product, optionName, value, selection: nextSelection })), {
+        onResolve: (resolved) => {
           setProduct(resolved);
           setPending(EMPTY_SELECTION);
           onResolved?.(resolved);
-        })
-        .catch((caught: unknown) => {
-          if (id !== requestId.current) {
-            return;
-          }
+        },
+        onReject: (caught) => {
           setError(caught);
           onError?.(caught);
-        })
-        .finally(() => {
-          if (id === requestId.current) {
-            setIsResolving(false);
-          }
-        });
+        },
+        onSettle: () => setIsResolving(false),
+      });
     },
-    [product, pending, resolve, onResolved, onError],
+    [product, pending, resolve, onResolved, onError, run],
   );
 
   const reset = React.useCallback(() => {
-    requestId.current++;
+    cancel();
     setPending(EMPTY_SELECTION);
     setError(null);
     setIsResolving(false);
-  }, []);
+  }, [cancel]);
 
   return { product, selection, isResolving, error, select, reset };
 }

@@ -114,27 +114,89 @@ export function normalizeHex(value: string): string | null {
   return `#${hex}`;
 }
 
-/** Count the number of distinct active filter facets, for a summary badge. */
+/** Active-filter count per facet, for the facet triggers and section badges. */
+export function facetCounts(state: SearchFiltersState) {
+  const attributes = Object.values(state.attributes).reduce(
+    (sum, values) => sum + values.length,
+    0,
+  );
+  return {
+    price: state.price.minPrice != null || state.price.maxPrice != null ? 1 : 0,
+    gender: state.gender ? 1 : 0,
+    age: state.age.length,
+    condition: state.condition ? 1 : 0,
+    availability: state.availability.length,
+    colors: state.colors.length,
+    brands: state.brands.length,
+    categories: state.categories.length,
+    attributes,
+  };
+}
+
+/** Total active filter values across every facet, for a summary badge. */
 export function countActiveFilters(state: SearchFiltersState): number {
-  let count = 0;
-  if (state.price.minPrice != null || state.price.maxPrice != null) {
-    count += 1;
+  return Object.values(facetCounts(state)).reduce((sum, count) => sum + count, 0);
+}
+
+/** Whether a category attribute exposes any selectable values. */
+export function attributeHasValues(attribute: CategoryAttribute): boolean {
+  return (attribute.values?.length ?? 0) > 0;
+}
+
+/**
+ * Recompute the derived attribute fields from the selected categories and their
+ * (state-cached) attribute definitions: the per-category map (in category
+ * order) and a pruning of any selected values whose attribute no longer applies.
+ */
+export function deriveAttributes(
+  categories: CategorySummary[],
+  byCategory: Record<string, CategoryAttribute[]>,
+  attributes: Record<string, string[]>,
+): Pick<SearchFiltersState, "attributesByCategory" | "attributes"> {
+  const ordered: Record<string, CategoryAttribute[]> = {};
+  const valid = new Set<string>();
+  for (const category of categories) {
+    const defs = byCategory[category.slug] ?? [];
+    ordered[category.slug] = defs;
+    for (const attribute of defs) {
+      valid.add(attribute.slug);
+    }
   }
-  if (state.gender) {
-    count += 1;
-  }
-  count += state.age.length;
-  if (state.condition) {
-    count += 1;
-  }
-  count += state.availability.length;
-  count += state.colors.length;
-  count += state.brands.length;
-  count += state.categories.length;
-  for (const values of Object.values(state.attributes)) {
-    count += values.length;
-  }
-  return count;
+  const prunedAttributes = Object.fromEntries(
+    Object.entries(attributes).filter(([key]) => valid.has(key)),
+  );
+  return { attributesByCategory: ordered, attributes: prunedAttributes };
+}
+
+/**
+ * Selected categories paired with the attribute filters they expose, skipping
+ * categories with none and de-duplicating an attribute shared across categories
+ * so it renders only once (under the first category that owns it).
+ */
+export function categoryAttributeGroups(
+  filters: SearchFiltersState,
+): Array<{ category: CategorySummary; attributes: CategoryAttribute[] }> {
+  const rendered = new Set<string>();
+  return filters.categories
+    .map((category) => {
+      const attributes = (filters.attributesByCategory[category.slug] ?? []).filter(
+        (attribute) => attributeHasValues(attribute) && !rendered.has(attribute.slug),
+      );
+      attributes.forEach((attribute) => rendered.add(attribute.slug));
+      return { category, attributes };
+    })
+    .filter((group) => group.attributes.length > 0);
+}
+
+/** Number of selected values across the given category attributes. */
+export function countCategoryAttributes(
+  filters: SearchFiltersState,
+  attributes: CategoryAttribute[],
+): number {
+  return attributes.reduce(
+    (sum, attribute) => sum + (filters.attributes[attribute.slug]?.length ?? 0),
+    0,
+  );
 }
 
 /**

@@ -1,5 +1,8 @@
 import * as React from "react";
 
+import { useInViewport } from "@/registry/default/hooks/use-in-viewport";
+import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
+
 /** A single page produced by a {@link PageFetcher}. */
 export interface InfiniteScrollPage<TItem> {
   items: TItem[];
@@ -76,9 +79,9 @@ export function useInfiniteScroll<TItem>({
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [error, setError] = React.useState<unknown>(null);
 
-  // Bumped on every reset; in-flight pages carry the id they began under so a
-  // late response from a previous seed is discarded.
-  const runId = React.useRef(0);
+  // Discards a page that's in flight when the seed is swapped, so a late
+  // response from a previous seed never lands.
+  const { run, cancel } = useLatestRequest();
 
   // Track the latest token for the imperative loadMore closure.
   const pageTokenRef = React.useRef(pageToken);
@@ -92,18 +95,18 @@ export function useInfiniteScroll<TItem>({
 
   // Reset accumulated state when the caller swaps in a new seed.
   React.useEffect(() => {
-    runId.current++;
+    cancel();
     isLoadingMoreRef.current = false;
     setSeedItems(initialItems);
     setExtraItems(EMPTY as TItem[]);
     setPageToken(initialPageToken);
     setIsLoadingMore(false);
     setError(null);
-  }, [initialItems, initialPageToken]);
+  }, [initialItems, initialPageToken, cancel]);
 
   const reset = React.useCallback(
     (seed?: { items: TItem[]; nextPageToken?: string | null }) => {
-      runId.current++;
+      cancel();
       isLoadingMoreRef.current = false;
       setSeedItems(seed?.items ?? (EMPTY as TItem[]));
       setExtraItems(EMPTY as TItem[]);
@@ -111,7 +114,7 @@ export function useInfiniteScroll<TItem>({
       setIsLoadingMore(false);
       setError(null);
     },
-    [],
+    [cancel],
   );
 
   const hasMore = enabled && pageToken != null;
@@ -121,14 +124,10 @@ export function useInfiniteScroll<TItem>({
     if (!enabled || isLoadingMoreRef.current || token == null) {
       return;
     }
-    const id = runId.current;
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
-    void Promise.resolve(fetchPage(token))
-      .then((page) => {
-        if (id !== runId.current) {
-          return;
-        }
+    run(Promise.resolve(fetchPage(token)), {
+      onResolve: (page) => {
         setExtraItems((prev) => {
           if (!getItemKey) {
             return [...prev, ...page.items];
@@ -152,20 +151,14 @@ export function useInfiniteScroll<TItem>({
           return next;
         });
         setPageToken(page.nextPageToken ?? null);
-      })
-      .catch((caught: unknown) => {
-        if (id !== runId.current) {
-          return;
-        }
-        setError(caught);
-      })
-      .finally(() => {
-        if (id === runId.current) {
-          isLoadingMoreRef.current = false;
-          setIsLoadingMore(false);
-        }
-      });
-  }, [enabled, fetchPage, getItemKey]);
+      },
+      onReject: (caught) => setError(caught),
+      onSettle: () => {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+      },
+    });
+  }, [enabled, fetchPage, getItemKey, run]);
 
   const [sentinel, setSentinel] = React.useState<Element | null>(null);
   const sentinelRef = React.useCallback(
@@ -173,21 +166,7 @@ export function useInfiniteScroll<TItem>({
     [],
   );
 
-  React.useEffect(() => {
-    if (!sentinel || !hasMore || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          loadMore();
-        }
-      },
-      { rootMargin },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [sentinel, hasMore, loadMore, rootMargin]);
+  useInViewport(sentinel, loadMore, { enabled: hasMore, rootMargin });
 
   const items = React.useMemo(
     () => (extraItems.length > 0 ? [...seedItems, ...extraItems] : seedItems),

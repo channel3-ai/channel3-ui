@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
+
 /** Loads option suggestions for a free-text query (e.g. brand/category search). */
 export type OptionFetcher<T> = (query: string) => Promise<T[]>;
 
@@ -40,7 +42,7 @@ export function useAsyncOptions<T>({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<unknown>(null);
 
-  const requestId = React.useRef(0);
+  const { run, cancel } = useLatestRequest();
 
   const setQuery = React.useCallback((next: string) => setQueryState(next), []);
 
@@ -49,37 +51,30 @@ export function useAsyncOptions<T>({
     if (trimmed.length < minLength) {
       setOptions([]);
       setIsLoading(false);
-      requestId.current++;
+      cancel();
       return;
     }
 
     setIsLoading(true);
-    const id = ++requestId.current;
+    // Discard any in-flight fetch from a previous query immediately, so a slow
+    // response can't land after the query has already moved on.
+    cancel();
     const timer = setTimeout(() => {
-      void Promise.resolve(fetch(trimmed))
-        .then((result) => {
-          if (id !== requestId.current) {
-            return;
-          }
+      run(Promise.resolve(fetch(trimmed)), {
+        onResolve: (result) => {
           setOptions(result);
           setError(null);
-        })
-        .catch((caught: unknown) => {
-          if (id !== requestId.current) {
-            return;
-          }
+        },
+        onReject: (caught) => {
           setError(caught);
           setOptions([]);
-        })
-        .finally(() => {
-          if (id === requestId.current) {
-            setIsLoading(false);
-          }
-        });
+        },
+        onSettle: () => setIsLoading(false),
+      });
     }, debounceMs);
 
     return () => clearTimeout(timer);
-  }, [query, fetch, debounceMs, minLength]);
+  }, [query, fetch, debounceMs, minLength, run, cancel]);
 
   return { query, setQuery, options, isLoading, error };
 }
