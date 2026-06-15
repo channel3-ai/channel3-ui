@@ -6,6 +6,7 @@ import type {
   PriceStatistics,
   ProductDetail,
   ProductImage,
+  Website,
 } from "@channel3/sdk/resources";
 
 /** Curated Unsplash photos so each fixture shows a relevant, stable product shot. */
@@ -393,6 +394,15 @@ export const fakeBrands: ReadonlyArray<Brand> = [
   { id: "brooks", name: "Brooks" },
 ];
 
+export const fakeWebsites: ReadonlyArray<Website> = [
+  { id: "nike.com", url: "https://nike.com" },
+  { id: "adidas.com", url: "https://adidas.com" },
+  { id: "zappos.com", url: "https://zappos.com" },
+  { id: "rei.com", url: "https://rei.com" },
+  { id: "nordstrom.com", url: "https://nordstrom.com" },
+  { id: "footlocker.com", url: "https://footlocker.com" },
+];
+
 /** Category fixtures for the Category filter typeahead. */
 export const fakeCategories: ReadonlyArray<CategorySummary> = [
   {
@@ -450,6 +460,13 @@ export async function fakeSearchBrands(query: string): Promise<Brand[]> {
   await wait(250);
   const q = query.toLowerCase();
   return fakeBrands.filter((brand) => brand.name.toLowerCase().includes(q));
+}
+
+/** Simulates a website typeahead (resolves free text to {@link Website} rows). */
+export async function fakeSearchWebsites(query: string): Promise<Website[]> {
+  await wait(250);
+  const q = query.toLowerCase();
+  return fakeWebsites.filter((website) => website.url.toLowerCase().includes(q));
 }
 
 /** Simulates `client.categories.search`. */

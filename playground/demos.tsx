@@ -30,6 +30,7 @@ import {
   fakeSearch,
   fakeSearchBrands,
   fakeSearchCategories,
+  fakeSearchWebsites,
   gridProducts,
   priceHistory,
   priceStats,
@@ -295,6 +296,7 @@ export function ProductFiltersTile() {
           value={filters}
           onChange={setFilters}
           searchBrands={fakeSearchBrands}
+          searchWebsites={fakeSearchWebsites}
           searchCategories={fakeSearchCategories}
           getCategory={fakeGetCategory}
           colorPercentages
@@ -439,6 +441,7 @@ export function ProductSearchBlock() {
         key={layout}
         fetchSearch={fakeSearch}
         searchBrands={fakeSearchBrands}
+        searchWebsites={fakeSearchWebsites}
         searchCategories={fakeSearchCategories}
         getCategory={fakeGetCategory}
         filtersLayout={layout}

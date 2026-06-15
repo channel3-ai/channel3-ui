@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { Brand, Category, CategoryAttribute, CategorySummary } from "@channel3/sdk/resources";
+import type { Brand, Category, CategoryAttribute, CategorySummary, Website } from "@channel3/sdk/resources";
 import { ChevronDown, Pipette, Plus, X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 
@@ -35,6 +35,8 @@ import { useAsyncOptions } from "@/registry/default/hooks/use-async-options";
 
 /** Searches brands by free text (wraps `client.brands.search`). */
 export type BrandSearcher = (query: string) => Promise<Brand[]>;
+/** Searches websites by free text, returning the SDK {@link Website} shape. */
+export type WebsiteSearcher = (query: string) => Promise<Website[]>;
 /** Searches categories by free text (wraps `client.categories.search`). */
 export type CategorySearcher = (query: string) => Promise<CategorySummary[]>;
 /** Loads a full category (with attributes) by slug (wraps `client.categories.retrieve`). */
@@ -47,6 +49,7 @@ interface ProductFiltersContextValue {
   /** Merge a patch (or updater) into the filter state. */
   update: (updater: FiltersUpdater) => void;
   searchBrands?: BrandSearcher;
+  searchWebsites?: WebsiteSearcher;
   searchCategories?: CategorySearcher;
   getCategory?: CategoryLoader;
   /** Reveal a per-color target-share slider on each selected color. */
@@ -70,6 +73,8 @@ export interface ProductFiltersProps extends Omit<React.ComponentProps<"div">, "
   onChange: (filters: SearchFiltersState) => void;
   /** Enables the Brands field. Wrap `client.brands.search` on your server. */
   searchBrands?: BrandSearcher;
+  /** Enables the Websites field. Returns SDK `Website` results on your server. */
+  searchWebsites?: WebsiteSearcher;
   /** Enables the Category field. Wrap `client.categories.search` on your server. */
   searchCategories?: CategorySearcher;
   /** Loads a category's attributes on select. Wrap `client.categories.retrieve`. */
@@ -82,6 +87,7 @@ function Root({
   value,
   onChange,
   searchBrands,
+  searchWebsites,
   searchCategories,
   getCategory,
   colorPercentages = false,
@@ -104,8 +110,8 @@ function Root({
   );
 
   const context = React.useMemo<ProductFiltersContextValue>(
-    () => ({ filters: value, update, searchBrands, searchCategories, getCategory, colorPercentages }),
-    [value, update, searchBrands, searchCategories, getCategory, colorPercentages],
+    () => ({ filters: value, update, searchBrands, searchWebsites, searchCategories, getCategory, colorPercentages }),
+    [value, update, searchBrands, searchWebsites, searchCategories, getCategory, colorPercentages],
   );
 
   return (
@@ -729,6 +735,74 @@ function Brands() {
   );
 }
 
+/** Strips the scheme (and any trailing slash) so website chips read as bare domains. */
+function websiteLabel(website: Website): string {
+  return website.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+function WebsitesControl({ inline = false, autoFocus = false }: { inline?: boolean; autoFocus?: boolean }) {
+  const { filters, update, searchWebsites } = useProductFilters("ProductFiltersWebsites");
+  if (!searchWebsites) {
+    return null;
+  }
+
+  const add = (website: Website) =>
+    update((current) =>
+      current.websites.some((existing) => existing.id === website.id)
+        ? {}
+        : { websites: [...current.websites, website] },
+    );
+  const remove = (id: string) =>
+    update((current) => ({ websites: current.websites.filter((website) => website.id !== id) }));
+
+  const renderOption = (website: Website) => <span>{websiteLabel(website)}</span>;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {inline ? (
+        <InlineTypeahead<Website>
+          placeholder="Search websites"
+          fetcher={searchWebsites}
+          getKey={(website) => website.id}
+          onPick={add}
+          renderOption={renderOption}
+          autoFocus={autoFocus}
+        />
+      ) : (
+        <Typeahead<Website>
+          triggerLabel="Add website"
+          placeholder="Search websites"
+          fetcher={searchWebsites}
+          getKey={(website) => website.id}
+          onPick={add}
+          renderOption={renderOption}
+        />
+      )}
+      {filters.websites.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {filters.websites.map((website) => (
+            <Chip key={website.id} onRemove={() => remove(website.id)}>
+              {websiteLabel(website)}
+            </Chip>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function Websites() {
+  const { searchWebsites } = useProductFilters("ProductFiltersWebsites");
+  if (!searchWebsites) {
+    return null;
+  }
+  return (
+    <Field label="Websites">
+      <WebsitesControl />
+    </Field>
+  );
+}
+
 function CategoryControl({ inline = false, autoFocus = false }: { inline?: boolean; autoFocus?: boolean }) {
   const { filters, update, searchCategories, getCategory } = useProductFilters(
     "ProductFiltersCategory",
@@ -971,7 +1045,7 @@ export interface ProductFiltersBarProps extends React.ComponentProps<"div"> {
  * under a search bar.
  */
 function Bar({ priceMax, priceStep, className, ...rest }: ProductFiltersBarProps) {
-  const { filters, update, searchBrands, searchCategories } = useProductFilters("ProductFiltersBar");
+  const { filters, update, searchBrands, searchWebsites, searchCategories } = useProductFilters("ProductFiltersBar");
   const counts = facetCounts(filters);
   const total = countActiveFilters(filters);
   const attributeGroups = categoryAttributeGroups(filters);
@@ -1003,6 +1077,11 @@ function Bar({ priceMax, priceStep, className, ...rest }: ProductFiltersBarProps
       {searchBrands ? (
         <FacetPopover label="Brands" count={counts.brands} contentClassName="min-w-[14rem]">
           <BrandsControl inline autoFocus />
+        </FacetPopover>
+      ) : null}
+      {searchWebsites ? (
+        <FacetPopover label="Websites" count={counts.websites} contentClassName="min-w-[14rem]">
+          <WebsitesControl inline autoFocus />
         </FacetPopover>
       ) : null}
       {searchCategories ? (
@@ -1067,7 +1146,7 @@ function FacetSection({
 }
 
 function DefaultLayout() {
-  const { filters, searchBrands, searchCategories } = useProductFilters("ProductFilters");
+  const { filters, searchBrands, searchWebsites, searchCategories } = useProductFilters("ProductFilters");
   const counts = facetCounts(filters);
   const attributeGroups = categoryAttributeGroups(filters);
 
@@ -1084,6 +1163,7 @@ function DefaultLayout() {
       ["availability", initial.availability],
       ["colors", initial.colors],
       ["brands", initial.brands],
+      ["websites", initial.websites],
       ["categories", initial.categories],
     ];
     const open = entries.filter(([, count]) => count > 0).map(([key]) => key);
@@ -1118,6 +1198,11 @@ function DefaultLayout() {
         {searchBrands ? (
           <FacetSection value="brands" label="Brands" count={counts.brands}>
             <BrandsControl inline />
+          </FacetSection>
+        ) : null}
+        {searchWebsites ? (
+          <FacetSection value="websites" label="Websites" count={counts.websites}>
+            <WebsitesControl inline />
           </FacetSection>
         ) : null}
         {searchCategories ? (
@@ -1177,6 +1262,7 @@ export {
   Availability as ProductFiltersAvailability,
   Colors as ProductFiltersColors,
   Brands as ProductFiltersBrands,
+  Websites as ProductFiltersWebsites,
   CategoryField as ProductFiltersCategory,
   Attributes as ProductFiltersAttributes,
 };

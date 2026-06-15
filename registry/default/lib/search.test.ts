@@ -55,21 +55,28 @@ describe("toSearchFilters", () => {
       max_price: 100,
     });
   });
+
+  it("maps websites to website_ids", () => {
+    expect(
+      toSearchFilters(state({ websites: [{ id: "site-1", url: "https://nike.com" }] })).website_ids,
+    ).toEqual(["site-1"]);
+  });
 });
 
 describe("facetCounts", () => {
   it("counts active values per facet", () => {
-    expect(facetCounts(EMPTY_FILTERS)).toMatchObject({ price: 0, age: 0, attributes: 0 });
+    expect(facetCounts(EMPTY_FILTERS)).toMatchObject({ price: 0, age: 0, websites: 0, attributes: 0 });
     expect(
       facetCounts(
         state({
           price: { minPrice: 10, maxPrice: null },
           age: ["kids", "adult"],
           colors: [{ hex: "#000000" }],
+          websites: [{ id: "site-1", url: "https://nike.com" }],
           attributes: { color: ["Black", "Blue"], material: ["Leather"] },
         }),
       ),
-    ).toMatchObject({ price: 1, age: 2, colors: 1, attributes: 3 });
+    ).toMatchObject({ price: 1, age: 2, colors: 1, websites: 1, attributes: 3 });
   });
 });
 

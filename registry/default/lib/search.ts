@@ -4,6 +4,7 @@ import type {
   CategoryAttribute,
   CategorySummary,
   SearchFilters,
+  Website,
 } from "@channel3/sdk/resources";
 
 /** Gender values accepted by the search filter (`unisex` products are matched implicitly). */
@@ -37,6 +38,7 @@ export interface SearchFiltersState {
   availability: AvailabilityStatus[];
   colors: ColorFilter[];
   brands: Brand[];
+  websites: Website[];
   categories: CategorySummary[];
   /**
    * Attribute definitions keyed by the category slug that owns them, preserving
@@ -56,6 +58,7 @@ export const EMPTY_FILTERS: SearchFiltersState = {
   availability: [],
   colors: [],
   brands: [],
+  websites: [],
   categories: [],
   attributesByCategory: {},
   attributes: {},
@@ -128,6 +131,7 @@ export function facetCounts(state: SearchFiltersState) {
     availability: state.availability.length,
     colors: state.colors.length,
     brands: state.brands.length,
+    websites: state.websites.length,
     categories: state.categories.length,
     attributes,
   };
@@ -287,6 +291,9 @@ export function toSearchFilters(state: SearchFiltersState): SearchFilters {
   }
   if (state.brands.length > 0) {
     filters.brand_ids = state.brands.map((brand) => brand.id);
+  }
+  if (state.websites.length > 0) {
+    filters.website_ids = state.websites.map((website) => website.id);
   }
   if (state.categories.length > 0) {
     filters.category_ids = state.categories.map((category) => category.slug);
