@@ -10,6 +10,7 @@ import {
   type BrandSearcher,
   type CategoryLoader,
   type CategorySearcher,
+  type WebsiteSearcher,
   ProductFilters,
   ProductFiltersBar,
   ProductFiltersRoot,
@@ -50,6 +51,8 @@ export interface ProductSearchProps extends Omit<React.ComponentProps<"div">, "o
   fetchSearch: SearchFetcher;
   /** Enables the Brands filter. */
   searchBrands?: BrandSearcher;
+  /** Enables the Websites filter. */
+  searchWebsites?: WebsiteSearcher;
   /** Enables the Category filter. */
   searchCategories?: CategorySearcher;
   /** Loads a category's attributes on select (enables the Attributes filter). */
@@ -91,6 +94,7 @@ export interface ProductSearchProps extends Omit<React.ComponentProps<"div">, "o
 export function ProductSearch({
   fetchSearch,
   searchBrands,
+  searchWebsites,
   searchCategories,
   getCategory,
   filtersLayout = "sidebar",
@@ -209,6 +213,7 @@ export function ProductSearch({
           value={filters}
           onChange={setFilters}
           searchBrands={searchBrands}
+          searchWebsites={searchWebsites}
           searchCategories={searchCategories}
           getCategory={getCategory}
           colorPercentages={colorPercentages}
@@ -259,6 +264,7 @@ export function ProductSearch({
               value={filters}
               onChange={setFilters}
               searchBrands={searchBrands}
+              searchWebsites={searchWebsites}
               searchCategories={searchCategories}
               getCategory={getCategory}
               colorPercentages={colorPercentages}
