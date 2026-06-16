@@ -10,8 +10,12 @@ type OptionValue = ProductDetail.Variants.Option.Value;
 export interface ProductGridProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
   /** Products to render, typically a page of search results. */
   products: ReadonlyArray<ProductDetail>;
+  /** Per-product destination URL; makes each card a crawlable `<a href>`. */
+  getHref?: (product: ProductDetail) => string;
   /** Forwarded to each {@link ProductCard}. */
   onSelect?: (product: ProductDetail) => void;
+  /** Forwarded to each {@link ProductCard}; prefetch hook on hover/focus/touch. */
+  onPreload?: (product: ProductDetail) => void;
   /** Forwarded to each {@link ProductCard} for color-swatch navigation. */
   onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
   /** Forwarded to each {@link ProductCard}; show color swatches below the price. */
@@ -32,7 +36,9 @@ const PRIORITY_COUNT = 4;
 /** Responsive grid of {@link ProductCard}s with loading and empty states. */
 export function ProductGrid({
   products,
+  getHref,
   onSelect,
+  onPreload,
   onSelectVariant,
   showSwatches = true,
   loading = false,
@@ -78,7 +84,9 @@ export function ProductGrid({
         <ProductCard
           key={product.id}
           product={product}
+          href={getHref?.(product)}
           onSelect={onSelect}
+          onPreload={onPreload}
           onSelectVariant={onSelectVariant ? (value) => onSelectVariant(product, value) : undefined}
           showSwatches={showSwatches}
           priority={index < PRIORITY_COUNT}
