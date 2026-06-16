@@ -28,8 +28,12 @@ export interface ProductRecommendationsProps
   enabled?: boolean;
   /** Number of skeleton cards shown while loading. Defaults to 6. */
   skeletonCount?: number;
+  /** Per-product destination URL; makes each card a crawlable `<a href>`. */
+  getHref?: (product: ProductDetail) => string;
   /** Forwarded to each card. */
   onSelect?: (product: ProductDetail) => void;
+  /** Forwarded to each card; prefetch hook on hover/focus/touch. */
+  onPreload?: (product: ProductDetail) => void;
   /** Forwarded to each card for color-swatch navigation. */
   onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
   /** Show color swatches below the price on each card. */
@@ -53,7 +57,9 @@ export function ProductRecommendations({
   eager = false,
   enabled = true,
   skeletonCount = 6,
+  getHref,
   onSelect,
+  onPreload,
   onSelectVariant,
   showSwatches,
   locale,
@@ -81,7 +87,9 @@ export function ProductRecommendations({
         products={products}
         loading={isLoading && products.length === 0}
         skeletonCount={skeletonCount}
+        getHref={getHref}
         onSelect={onSelect}
+        onPreload={onPreload}
         onSelectVariant={onSelectVariant}
         showSwatches={showSwatches}
         locale={locale}

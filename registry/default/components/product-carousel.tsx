@@ -16,8 +16,12 @@ type OptionValue = ProductDetail.Variants.Option.Value;
 export interface ProductCarouselProps extends Omit<React.ComponentProps<"div">, "onSelect" | "title"> {
   /** Products to render as horizontally scrollable cards. */
   products: ReadonlyArray<ProductDetail>;
+  /** Per-product destination URL; makes each card a crawlable `<a href>`. */
+  getHref?: (product: ProductDetail) => string;
   /** Forwarded to each {@link ProductCard}. */
   onSelect?: (product: ProductDetail) => void;
+  /** Forwarded to each {@link ProductCard}; prefetch hook on hover/focus/touch. */
+  onPreload?: (product: ProductDetail) => void;
   /** Forwarded to each {@link ProductCard} for color-swatch navigation. */
   onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
   /** Forwarded to each {@link ProductCard}; show color swatches below the price. */
@@ -40,7 +44,9 @@ const PRIORITY_COUNT = 4;
 /** Horizontally scrollable row of {@link ProductCard}s (e.g. "More like this"). */
 export function ProductCarousel({
   products,
+  getHref,
   onSelect,
+  onPreload,
   onSelectVariant,
   showSwatches = true,
   title,
@@ -75,7 +81,9 @@ export function ProductCarousel({
               <CarouselItem key={product.id} className={ITEM_BASIS}>
                 <ProductCard
                   product={product}
+                  href={getHref?.(product)}
                   onSelect={onSelect}
+                  onPreload={onPreload}
                   onSelectVariant={
                     onSelectVariant ? (value) => onSelectVariant(product, value) : undefined
                   }

@@ -67,7 +67,15 @@ export function usePlaygroundHandlers() {
       console.info("swatch navigate", product.id, value.label, value.product_id),
     [],
   );
-  return { onSelect, onSelectVariant };
+  const onPreload = React.useCallback(
+    (product: ProductDetail) => console.info("card preload", product.id),
+    [],
+  );
+  const getHref = React.useCallback(
+    (product: ProductDetail) => `#/products/${product.id}`,
+    [],
+  );
+  return { onSelect, onSelectVariant, onPreload, getHref };
 }
 
 function VariantPanel({ product, title }: { product: ProductDetail; title: string }) {
@@ -123,7 +131,8 @@ export function SearchBarTile() {
 export function ProductCardTile() {
   const [skeleton, setSkeleton] = React.useState(false);
   const [showSwatches, setShowSwatches] = React.useState(true);
-  const { onSelect, onSelectVariant } = usePlaygroundHandlers();
+  const { onSelect, onSelectVariant, onPreload, getHref } =
+    usePlaygroundHandlers();
   const sale = cardFixtures[2]!;
   const swatches = cardFixtures[1]!;
 
@@ -155,13 +164,17 @@ export function ProductCardTile() {
             <ProductCard
               product={sale}
               showSwatches={showSwatches}
+              href={getHref(sale)}
               onSelect={onSelect}
+              onPreload={onPreload}
               onSelectVariant={(v) => onSelectVariant(sale, v)}
             />
             <ProductCard
               product={swatches}
               showSwatches={showSwatches}
+              href={getHref(swatches)}
               onSelect={onSelect}
+              onPreload={onPreload}
               onSelectVariant={(v) => onSelectVariant(swatches, v)}
             />
           </>
@@ -319,7 +332,8 @@ export function ProductGridTile() {
   const [loading, setLoading] = React.useState(false);
   const [showEmpty, setShowEmpty] = React.useState(false);
   const [showSwatches, setShowSwatches] = React.useState(true);
-  const { onSelect, onSelectVariant } = usePlaygroundHandlers();
+  const { onSelect, onSelectVariant, onPreload, getHref } =
+    usePlaygroundHandlers();
   const gridDisabled = loading || showEmpty;
 
   return (
@@ -351,7 +365,9 @@ export function ProductGridTile() {
         products={showEmpty ? [] : gridCanvasProducts}
         loading={loading}
         showSwatches={showSwatches}
+        getHref={getHref}
         onSelect={onSelect}
+        onPreload={onPreload}
         onSelectVariant={onSelectVariant}
       />
     </DemoTile>
@@ -361,7 +377,8 @@ export function ProductGridTile() {
 export function ProductCarouselTile() {
   const [loading, setLoading] = React.useState(false);
   const [swatches, setSwatches] = React.useState(true);
-  const { onSelect, onSelectVariant } = usePlaygroundHandlers();
+  const { onSelect, onSelectVariant, onPreload, getHref } =
+    usePlaygroundHandlers();
   const noImage: ProductDetail = {
     id: "x/no-image",
     title: "No image, no offers",
@@ -390,7 +407,9 @@ export function ProductCarouselTile() {
         products={[...gridProducts.slice(0, 5), noImage]}
         loading={loading}
         showSwatches={swatches}
+        getHref={getHref}
         onSelect={onSelect}
+        onPreload={onPreload}
         onSelectVariant={onSelectVariant}
       />
     </DemoTile>
@@ -415,7 +434,9 @@ export function PdpBlock() {
       fetchSimilar={fakeFetchSimilar}
       recommendations={{
         eager: true,
+        getHref: (recommended) => `#/products/${recommended.id}`,
         onSelect: (recommended) => console.info("rec select", recommended.id),
+        onPreload: (recommended) => console.info("rec preload", recommended.id),
         onSelectVariant: (recommended, value) =>
           console.info("rec swatch", recommended.id, value.label),
       }}

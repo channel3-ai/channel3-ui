@@ -25,8 +25,12 @@ export interface ProductDetailsRecommendationsConfig {
   eager?: boolean;
   /** Number of skeleton cards shown while loading. */
   skeletonCount?: number;
+  /** Per-recommendation destination URL; makes each card a crawlable `<a href>`. */
+  getHref?: (product: ProductDetail) => string;
   /** Fired when a recommended card is activated. */
   onSelect?: (product: ProductDetail) => void;
+  /** Prefetch hook fired when a recommended card is hovered/focused/touched. */
+  onPreload?: (product: ProductDetail) => void;
   /** Fired when a recommended card's color swatch is clicked. */
   onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
   /** Show color swatches on recommended cards. */

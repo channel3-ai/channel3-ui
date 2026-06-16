@@ -24,8 +24,22 @@ const MAX_SWATCHES = 10;
 export interface ProductCardProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
   /** The product to display. Works with both search hits and detail responses. */
   product: ProductDetail;
+  /**
+   * Destination URL for the card. When set, the image and title render as a real
+   * `<a href>` (crawlable, middle/cmd-clickable); a plain left-click still calls
+   * {@link ProductCardProps.onSelect} for SPA navigation.
+   */
+  href?: string;
   /** Called when the card is activated (e.g. to open a product detail view). */
   onSelect?: (product: ProductDetail) => void;
+  /**
+   * Called when the card is hovered, focused, or touched — before activation.
+   * Router-agnostic prefetch hook: wire it to your framework's route preloader
+   * (e.g. TanStack Router `preloadRoute`, Next.js `router.prefetch`) so the
+   * destination is warm by the time the user clicks. Fires at most once per
+   * pointer entry/focus.
+   */
+  onPreload?: (product: ProductDetail) => void;
   /**
    * Called when a color swatch is clicked. Navigate to `value.product_id` (the
    * variant's own product) when set. Falls back to {@link ProductCardProps.onSelect}.
@@ -57,7 +71,9 @@ export interface ProductCardProps extends Omit<React.ComponentProps<"div">, "onS
  */
 export function ProductCard({
   product,
+  href,
   onSelect,
+  onPreload,
   onSelectVariant,
   showSwatches = true,
   priority = false,
@@ -217,23 +233,62 @@ export function ProductCard({
   const tapClass =
     "block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+  // Prefetch the destination as soon as the user signals intent (hover/focus/
+  // touch), so it's warm before the click. Harmless to fire more than once.
+  const preload = onPreload ? () => onPreload(product) : undefined;
+
+  // Crawlable link with progressive enhancement: a plain left-click is handled
+  // by onSelect (SPA nav), but the real href keeps the page indexable and lets
+  // modifier/middle clicks open it normally.
+  const tap = (children: React.ReactNode) => {
+    if (href) {
+      return (
+        <a
+          href={href}
+          className={tapClass}
+          onMouseEnter={preload}
+          onFocus={preload}
+          onTouchStart={preload}
+          onClick={(event) => {
+            if (
+              onSelect &&
+              event.button === 0 &&
+              !event.metaKey &&
+              !event.ctrlKey &&
+              !event.shiftKey &&
+              !event.altKey
+            ) {
+              event.preventDefault();
+              onSelect(product);
+            }
+          }}
+        >
+          {children}
+        </a>
+      );
+    }
+    if (interactive) {
+      return (
+        <button
+          type="button"
+          onClick={() => onSelect?.(product)}
+          onMouseEnter={preload}
+          onFocus={preload}
+          onTouchStart={preload}
+          className={tapClass}
+        >
+          {children}
+        </button>
+      );
+    }
+    return children;
+  };
+
   return (
     <div data-slot="product-card" className={cn("group flex h-full flex-col", className)} {...props}>
-      {interactive ? (
-        <button type="button" onClick={() => onSelect?.(product)} className={tapClass}>
-          {media}
-        </button>
-      ) : (
-        media
-      )}
+      {tap(media)}
       {thumbnails}
-      {interactive ? (
-        <button type="button" onClick={() => onSelect?.(product)} className={tapClass}>
-          {meta}
-        </button>
-      ) : (
-        meta
-      )}
+      {tap(meta)}
     </div>
   );
 }
