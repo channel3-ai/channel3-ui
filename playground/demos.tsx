@@ -377,7 +377,8 @@ export function ProductGridTile() {
 export function ProductCarouselTile() {
   const [loading, setLoading] = React.useState(false);
   const [swatches, setSwatches] = React.useState(true);
-  const { onSelect, onSelectVariant } = usePlaygroundHandlers();
+  const { onSelect, onSelectVariant, onPreload, getHref } =
+    usePlaygroundHandlers();
   const noImage: ProductDetail = {
     id: "x/no-image",
     title: "No image, no offers",
@@ -406,7 +407,9 @@ export function ProductCarouselTile() {
         products={[...gridProducts.slice(0, 5), noImage]}
         loading={loading}
         showSwatches={swatches}
+        getHref={getHref}
         onSelect={onSelect}
+        onPreload={onPreload}
         onSelectVariant={onSelectVariant}
       />
     </DemoTile>
@@ -431,7 +434,9 @@ export function PdpBlock() {
       fetchSimilar={fakeFetchSimilar}
       recommendations={{
         eager: true,
+        getHref: (recommended) => `#/products/${recommended.id}`,
         onSelect: (recommended) => console.info("rec select", recommended.id),
+        onPreload: (recommended) => console.info("rec preload", recommended.id),
         onSelectVariant: (recommended, value) =>
           console.info("rec swatch", recommended.id, value.label),
       }}
