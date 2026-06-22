@@ -1,4 +1,5 @@
 import type { PriceStatistics } from "@channel3/sdk/resources";
+import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/registry/default/lib/format";
@@ -28,8 +29,8 @@ const STATUS_TEXT: Record<PriceStatus, string> = {
   high: "text-red-600 dark:text-red-400",
 };
 
-/** Keep the boundary labels from spilling past the track's edges. */
-const clamp = (value: number) => Math.min(94, Math.max(6, value));
+// Track spans mean ± WINDOW·σ; band edges derive from the same mapping as the thumb.
+const WINDOW = 2;
 
 export interface PriceRangeGaugeProps extends React.ComponentProps<"div"> {
   /** Price statistics from `GET /v0/price-tracking/history`. */
@@ -38,24 +39,23 @@ export interface PriceRangeGaugeProps extends React.ComponentProps<"div"> {
   locale?: string;
 }
 
-/**
- * Plots the current price against its historical range as three zones — a
- * "lower than usual" green band (below `mean - std_dev`), a "typical" amber
- * band, and a "higher than usual" red band — with a slider-style thumb at the
- * current price and a caption stating its standing. Falls back to a neutral bar
- * when there is no meaningful range.
- */
+/** Current price on a three-zone gauge (low / typical / high vs `mean ± std_dev`). */
 export function PriceRangeGauge({ statistics, locale, className, ...props }: PriceRangeGaugeProps) {
   const { min_price, max_price, current_price, currency, mean, std_dev, current_status } =
     statistics;
 
-  const hasRange = max_price > min_price;
-  const span = Math.max(max_price - min_price, 0.01);
-  const pos = (price: number) => Math.min(100, Math.max(0, ((price - min_price) / span) * 100));
+  const hasRange = max_price > min_price && std_dev > 0;
+  const lowBound = mean - std_dev;
+  const highBound = mean + std_dev;
 
-  const lowEnd = pos(mean - std_dev);
-  const highStart = Math.max(lowEnd, pos(mean + std_dev));
-  const marker = pos(current_price);
+  const pos = (price: number) => {
+    const fromCenter = (price - mean) / std_dev / WINDOW;
+    return Math.min(100, Math.max(0, (fromCenter + 1) * 50));
+  };
+
+  const greenEnd = hasRange ? pos(lowBound) : 0;
+  const yellowEnd = hasRange ? pos(highBound) : 0;
+  const marker = hasRange ? pos(current_price) : 50;
 
   return (
     <div data-slot="price-range-gauge" className={cn("flex flex-col gap-2", className)} {...props}>
@@ -63,11 +63,14 @@ export function PriceRangeGauge({ statistics, locale, className, ...props }: Pri
         <span className="text-sm font-semibold">
           {formatCurrency(current_price, currency, locale)}
         </span>
-        {hasRange ? (
-          <span className={cn("text-xs font-medium", STATUS_TEXT[current_status])}>
-            {STATUS_LABEL[current_status]}
-          </span>
-        ) : null}
+        <span
+          className={cn(
+            "text-xs font-medium",
+            hasRange ? STATUS_TEXT[current_status] : "text-muted-foreground",
+          )}
+        >
+          {hasRange ? STATUS_LABEL[current_status] : "Stable price"}
+        </span>
       </div>
 
       <div className="relative h-2.5 w-full">
@@ -76,42 +79,43 @@ export function PriceRangeGauge({ statistics, locale, className, ...props }: Pri
             <>
               <div
                 className={cn("absolute inset-y-0 left-0", ZONE_FILL.low)}
-                style={{ width: `${lowEnd}%` }}
+                style={{ width: `${greenEnd}%` }}
               />
               <div
                 className={cn("absolute inset-y-0", ZONE_FILL.typical)}
-                style={{ left: `${lowEnd}%`, width: `${Math.max(highStart - lowEnd, 0)}%` }}
+                style={{
+                  left: `${greenEnd}%`,
+                  width: `${yellowEnd - greenEnd}%`,
+                }}
               />
               <div
                 className={cn("absolute inset-y-0 right-0", ZONE_FILL.high)}
-                style={{ left: `${highStart}%` }}
+                style={{ left: `${yellowEnd}%` }}
               />
             </>
           ) : null}
         </div>
 
-        {hasRange ? (
-          <div
-            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background shadow-sm"
-            style={{ left: `${marker}%` }}
-            role="presentation"
-          />
-        ) : null}
+        <div
+          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background shadow-sm"
+          style={{ left: `${marker}%` }}
+          role="presentation"
+        />
       </div>
 
       {hasRange ? (
         <div className="relative h-4 text-xs text-muted-foreground">
           <span
             className="absolute -translate-x-1/2 whitespace-nowrap"
-            style={{ left: `${clamp(lowEnd)}%` }}
+            style={{ left: `${greenEnd}%` }}
           >
-            {formatCurrency(mean - std_dev, currency, locale)}
+            {formatCurrency(lowBound, currency, locale)}
           </span>
           <span
             className="absolute -translate-x-1/2 whitespace-nowrap"
-            style={{ left: `${clamp(highStart)}%` }}
+            style={{ left: `${yellowEnd}%` }}
           >
-            {formatCurrency(mean + std_dev, currency, locale)}
+            {formatCurrency(highBound, currency, locale)}
           </span>
         </div>
       ) : null}

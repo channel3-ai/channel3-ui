@@ -198,6 +198,18 @@ function sliderThumb(value: number | readonly number[], index: number): number |
   return index === 0 ? (value as number) : undefined;
 }
 
+function priceFromSliderRange(
+  range: number | readonly number[],
+  max: number,
+): { minPrice: number | null; maxPrice: number | null } {
+  const low = sliderThumb(range, 0) ?? 0;
+  const high = sliderThumb(range, 1) ?? max;
+  return {
+    minPrice: low <= 0 ? null : low,
+    maxPrice: high >= max ? null : high,
+  };
+}
+
 function PriceControl({ max = 1000, step = 10 }: { max?: number; step?: number }) {
   const { filters, update } = useProductFilters("ProductFiltersPrice");
   const { minPrice, maxPrice } = filters.price;
@@ -212,6 +224,8 @@ function PriceControl({ max = 1000, step = 10 }: { max?: number; step?: number }
     const value = Number(raw);
     return Number.isFinite(value) ? value : null;
   };
+
+  const sliderDefault: [number, number] = [minPrice ?? 0, maxPrice ?? max];
 
   return (
     <div className="flex flex-col gap-2">
@@ -249,18 +263,12 @@ function PriceControl({ max = 1000, step = 10 }: { max?: number; step?: number }
         </div>
       </div>
       <Slider
+        key={`${sliderDefault[0]}-${sliderDefault[1]}`}
         min={0}
         max={max}
         step={step}
-        value={[minPrice ?? 0, maxPrice ?? max]}
-        onValueChange={(range) => {
-          const low = sliderThumb(range, 0) ?? 0;
-          const high = sliderThumb(range, 1) ?? max;
-          setPrice({
-            minPrice: low <= 0 ? null : low,
-            maxPrice: high >= max ? null : high,
-          });
-        }}
+        defaultValue={sliderDefault}
+        onValueCommit={(range) => setPrice(priceFromSliderRange(range, max))}
         aria-label="Price range"
         className="mt-1"
       />

@@ -43,13 +43,17 @@ describe("PriceRangeGauge", () => {
     expect(marker?.style.left).toBe("50%");
   });
 
-  it("renders no zones or marker when there is no range", () => {
+  it("renders a neutral stable state when there is no range", () => {
     const { container } = render(
       <PriceRangeGauge
         statistics={stats({ min_price: 100, max_price: 100, current_price: 100, std_dev: 0 })}
       />,
     );
-    expect(container.querySelector('[role="presentation"]')).toBeNull();
+    expect(container.querySelectorAll('[class*="bg-emerald"]')).toHaveLength(0);
+    const marker = container.querySelector('[role="presentation"]') as HTMLElement | null;
+    expect(marker).not.toBeNull();
+    expect(marker?.style.left).toBe("50%");
+    expect(screen.getByText("Stable price")).toBeInTheDocument();
     expect(screen.getAllByText("$100.00").length).toBeGreaterThan(0);
   });
 });
