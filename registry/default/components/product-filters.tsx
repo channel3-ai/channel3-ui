@@ -144,10 +144,14 @@ function Chip({ children, onRemove }: { children: React.ReactNode; onRemove: () 
   return (
     <span className={cn(filterPillClass(true), "max-w-full min-w-0 pr-1")}>
       <span
-        className="min-w-0 truncate"
+        className="inline-flex min-w-0 items-center gap-1 overflow-hidden"
         title={typeof children === "string" ? children : undefined}
       >
-        {children}
+        {typeof children === "string" ? (
+          <span className="truncate">{children}</span>
+        ) : (
+          children
+        )}
       </span>
       <button
         type="button"
@@ -725,9 +729,13 @@ function BrandsControl({ inline = false, autoFocus = false }: { inline?: boolean
           {filters.brands.map((brand) => (
             <Chip key={brand.id} onRemove={() => remove(brand.id)}>
               {brand.logo_url ? (
-                <img src={brand.logo_url} alt="" className="size-4 rounded object-contain" />
+                <img
+                  src={brand.logo_url}
+                  alt=""
+                  className="size-4 shrink-0 rounded object-contain"
+                />
               ) : null}
-              {brand.name}
+              <span className="truncate">{brand.name}</span>
             </Chip>
           ))}
         </div>
