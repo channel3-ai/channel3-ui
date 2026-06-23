@@ -34,12 +34,14 @@ export interface ProductCarouselProps extends Omit<React.ComponentProps<"div">, 
   skeletonCount?: number;
   /** Locale override for price formatting. */
   locale?: string;
+  /** Per-item width/responsive basis. Override to show more cards per view. */
+  itemClassName?: string;
+  /** How many leading cards load eagerly at high priority. Defaults to 4. */
+  priorityCount?: number;
 }
 
 const ITEM_BASIS = "basis-1/2 sm:basis-1/2 md:basis-1/3 lg:basis-1/4";
 const NAV_CLASS = "static size-8 translate-x-0 translate-y-0";
-/** Cards visible before scrolling (widest layout), loaded eagerly. */
-const PRIORITY_COUNT = 4;
 
 /** Horizontally scrollable row of {@link ProductCard}s (e.g. "More like this"). */
 export function ProductCarousel({
@@ -53,6 +55,8 @@ export function ProductCarousel({
   loading = false,
   skeletonCount = 8,
   locale,
+  itemClassName = ITEM_BASIS,
+  priorityCount = 4,
   className,
   ...props
 }: ProductCarouselProps) {
@@ -73,12 +77,12 @@ export function ProductCarousel({
       <CarouselContent>
         {loading
           ? Array.from({ length: skeletonCount }, (_, index) => (
-              <CarouselItem key={index} className={ITEM_BASIS}>
+              <CarouselItem key={index} className={itemClassName}>
                 <ProductCardSkeleton />
               </CarouselItem>
             ))
           : products.map((product, index) => (
-              <CarouselItem key={product.id} className={ITEM_BASIS}>
+              <CarouselItem key={product.id} className={itemClassName}>
                 <ProductCard
                   product={product}
                   href={getHref?.(product)}
@@ -88,7 +92,7 @@ export function ProductCarousel({
                     onSelectVariant ? (value) => onSelectVariant(product, value) : undefined
                   }
                   showSwatches={showSwatches}
-                  priority={index < PRIORITY_COUNT}
+                  priority={index < priorityCount}
                   locale={locale}
                 />
               </CarouselItem>
