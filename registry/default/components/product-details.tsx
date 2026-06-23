@@ -42,6 +42,7 @@ interface ProductDetailsContextValue {
   selection: Record<string, string> | undefined;
   onSelectVariant: ((optionName: string, value: OptionValue) => void) | undefined;
   onOfferClick: ((offer: ProductOffer) => void) | undefined;
+  buyLinkRel: string | undefined;
   priceHistory: PriceHistory | undefined;
   isResolving: boolean;
   locale: string | undefined;
@@ -71,6 +72,8 @@ export interface ProductDetailsProps extends Omit<React.ComponentProps<"div">, "
   onSelectVariant?: (optionName: string, value: OptionValue) => void;
   /** Fired when a merchant buy link is clicked. */
   onOfferClick?: (offer: ProductOffer) => void;
+  /** `rel` for merchant buy links. Use `"sponsored noopener noreferrer"` for affiliate links. */
+  buyLinkRel?: string;
   /** Optional price-tracking history to render the price section. */
   priceHistory?: PriceHistory;
   /** Dim the variant controls while a re-resolve is in flight. */
@@ -92,6 +95,7 @@ function Root({
   selection,
   onSelectVariant,
   onOfferClick,
+  buyLinkRel,
   priceHistory,
   isResolving = false,
   locale,
@@ -108,6 +112,7 @@ function Root({
       selection,
       onSelectVariant,
       onOfferClick,
+      buyLinkRel,
       priceHistory,
       isResolving,
       locale,
@@ -121,6 +126,7 @@ function Root({
       selection,
       onSelectVariant,
       onOfferClick,
+      buyLinkRel,
       priceHistory,
       isResolving,
       locale,
@@ -144,7 +150,6 @@ function Gallery({ className, ...rest }: React.ComponentProps<"div">) {
   return (
     <ImageGallery
       images={product.images ?? []}
-      alt={product.title}
       previewSrc={variantPreview?.thumbnail_url ?? null}
       className={className}
       {...rest}
@@ -201,7 +206,7 @@ function Variants({ className, ...rest }: React.ComponentProps<"div">) {
 }
 
 function Offers({ className, ...rest }: React.ComponentProps<"div">) {
-  const { product, onOfferClick, locale } = useProductDetails("ProductDetailsOffers");
+  const { product, onOfferClick, locale, buyLinkRel } = useProductDetails("ProductDetailsOffers");
   const offers = product.offers ?? [];
   if (offers.length === 0) {
     return null;
@@ -215,7 +220,12 @@ function Offers({ className, ...rest }: React.ComponentProps<"div">) {
       {hasInStock ? (
         <h2 className="text-sm font-medium text-muted-foreground">Available at</h2>
       ) : null}
-      <OffersList offers={offers} onOfferClick={onOfferClick} locale={locale} />
+      <OffersList
+        offers={offers}
+        onOfferClick={onOfferClick}
+        locale={locale}
+        buyLinkRel={buyLinkRel}
+      />
     </div>
   );
 }
