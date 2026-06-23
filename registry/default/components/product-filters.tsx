@@ -142,13 +142,18 @@ function Field({
 
 function Chip({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
   return (
-    <span className={cn(filterPillClass(true), "pr-1")}>
-      {children}
+    <span className={cn(filterPillClass(true), "max-w-full min-w-0 pr-1")}>
+      <span
+        className="min-w-0 truncate"
+        title={typeof children === "string" ? children : undefined}
+      >
+        {children}
+      </span>
       <button
         type="button"
         onClick={onRemove}
         aria-label="Remove"
-        className="flex size-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+        className="flex size-4 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
       >
         <X className="size-3" />
       </button>
