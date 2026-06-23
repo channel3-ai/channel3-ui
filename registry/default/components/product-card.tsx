@@ -118,7 +118,7 @@ export function ProductCard({
       {image && !imageFailed ? (
         <img
           src={image.url}
-          alt={image.alt_text ?? product.title}
+          alt={image.alt_text ?? ""}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding="async"

@@ -14,11 +14,9 @@ import {
 
 function GalleryImage({
   image,
-  alt,
   priority = false,
 }: {
   image: ProductImage;
-  alt: string | undefined;
   /** Load eagerly at high fetch priority (the initially visible main slide). */
   priority?: boolean;
 }) {
@@ -41,7 +39,7 @@ function GalleryImage({
   return (
     <img
       src={image.url}
-      alt={image.alt_text ?? alt ?? ""}
+      alt={image.alt_text ?? ""}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : undefined}
       decoding="async"
@@ -59,8 +57,6 @@ function GalleryImage({
 export interface ImageGalleryProps extends React.ComponentProps<"div"> {
   /** Product images, typically `ProductDetail.images`. */
   images: ReadonlyArray<ProductImage>;
-  /** Fallback alt text (e.g. product title) when an image has none. */
-  alt?: string;
   /**
    * Transient image to overlay on the active slide (e.g. a hovered variant
    * swatch's `thumbnail_url`). The carousel state is untouched; clearing this
@@ -70,7 +66,7 @@ export interface ImageGalleryProps extends React.ComponentProps<"div"> {
 }
 
 /** Product image carousel with a synced thumbnail strip. */
-export function ImageGallery({ images, alt, previewSrc, className, ...props }: ImageGalleryProps) {
+export function ImageGallery({ images, previewSrc, className, ...props }: ImageGalleryProps) {
   const [api, setApi] = React.useState<CarouselApi>();
   const [selected, setSelected] = React.useState(0);
 
@@ -120,7 +116,7 @@ export function ImageGallery({ images, alt, previewSrc, className, ...props }: I
                     <div className="aspect-square" />
                     {multiple ? null : <div className="size-14" />}
                   </div>
-                  <GalleryImage image={image} alt={alt} priority={index === 0} />
+                  <GalleryImage image={image} priority={index === 0} />
                 </div>
               </CarouselItem>
             ))}
@@ -160,7 +156,7 @@ export function ImageGallery({ images, alt, previewSrc, className, ...props }: I
                   : "opacity-60 hover:opacity-100",
               )}
             >
-              <GalleryImage image={image} alt={alt} />
+              <GalleryImage image={image} />
             </button>
           ))}
         </div>

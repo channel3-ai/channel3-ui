@@ -208,7 +208,7 @@ export function ImageGalleryTile() {
       description="Carousel with synced thumbnail strip."
       span={5}
     >
-      <ImageGallery images={detailProduct.images ?? []} alt={detailProduct.title} />
+      <ImageGallery images={detailProduct.images ?? []} />
     </DemoTile>
   );
 }

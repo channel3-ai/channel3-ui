@@ -20,6 +20,8 @@ export interface OffersListProps extends React.ComponentProps<"div"> {
   actionLabel?: string;
   /** Locale override for price formatting. */
   locale?: string;
+  /** `rel` for each buy link. Use `"sponsored noopener noreferrer"` for affiliate links. */
+  buyLinkRel?: string;
 }
 
 const byPrice = (a: ProductOffer, b: ProductOffer) => a.price.price - b.price.price;
@@ -34,6 +36,7 @@ export function OffersList({
   onOfferClick,
   actionLabel = "View",
   locale,
+  buyLinkRel = "noopener noreferrer",
   className,
   ...props
 }: OffersListProps) {
@@ -65,6 +68,7 @@ export function OffersList({
       dimmed={dimmed}
       actionLabel={actionLabel}
       locale={locale}
+      buyLinkRel={buyLinkRel}
       onOfferClick={onOfferClick}
     />
   );
@@ -88,6 +92,7 @@ function OfferRow({
   dimmed,
   actionLabel,
   locale,
+  buyLinkRel,
   onOfferClick,
 }: {
   offer: ProductOffer;
@@ -95,6 +100,7 @@ function OfferRow({
   dimmed: boolean;
   actionLabel: string;
   locale: string | undefined;
+  buyLinkRel: string;
   onOfferClick: ((offer: ProductOffer) => void) | undefined;
 }) {
   return (
@@ -121,7 +127,7 @@ function OfferRow({
         <a
           href={offer.url}
           target="_blank"
-          rel="noopener noreferrer"
+          rel={buyLinkRel}
           onClick={() => onOfferClick?.(offer)}
           className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
         >
