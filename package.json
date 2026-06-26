@@ -1,7 +1,7 @@
 {
   "name": "channel3-ui",
   "version": "0.1.0",
-  "description": "Source-available React components for building shopping experiences on the Channel3 API. Distributed via the shadcn registry.",
+  "description": "Open-source (MIT) React components for building shopping experiences on the Channel3 API. Distributed via the shadcn registry.",
   "homepage": "https://github.com/channel3-ai/channel3-ui",
   "license": "MIT",
   "repository": {
