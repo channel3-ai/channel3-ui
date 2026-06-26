@@ -1,6 +1,6 @@
 # Channel3 UI
 
-Source-available React components for building shopping experiences on the
+Open-source (MIT) React components for building shopping experiences on the
 [Channel3 API](https://docs.trychannel3.com), distributed as a
 [shadcn registry](https://ui.shadcn.com/docs/registry). You install the source
 with the shadcn CLI and own it like any other component in your project.
