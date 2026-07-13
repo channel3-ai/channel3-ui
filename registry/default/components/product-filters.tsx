@@ -1,6 +1,6 @@
 import * as React from "react";
 import type { Brand, Category, CategoryAttribute, CategorySummary, Website } from "@channel3/sdk/resources";
-import { ChevronDown, Pipette, Plus, X } from "lucide-react";
+import { Check, ChevronDown, Pipette, Plus, X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 
 import { cn } from "@/lib/utils";
@@ -23,13 +23,18 @@ import {
   countActiveFilters,
   countCategoryAttributes,
   deriveAttributes,
+  type DimensionRange,
   EMPTY_FILTERS,
   facetCounts,
   GENDER_OPTIONS,
+  LENGTH_UNIT_OPTIONS,
+  type LengthUnit,
   normalizeHex,
   type SearchFiltersState,
   setAttributeValues,
   setColorPercentage,
+  WEIGHT_UNIT_OPTIONS,
+  type WeightUnit,
 } from "@/registry/default/lib/search";
 import { useAsyncOptions } from "@/registry/default/hooks/use-async-options";
 
@@ -191,6 +196,15 @@ function filterPillClass(selected: boolean) {
 const NO_SPINNER_CLASS =
   "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
+/** Parse a numeric input's raw value to a finite number, or `null` when blank/invalid. */
+function parseNumberInput(raw: string): number | null {
+  if (raw.trim() === "") {
+    return null;
+  }
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
 /** Thin, theme-matched scrollbar for option/result lists. */
 const THIN_SCROLLBAR_CLASS =
   "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border";
@@ -226,14 +240,6 @@ function PriceControl({ max = 1000, step = 10 }: { max?: number; step?: number }
   const setPrice = (next: { minPrice?: number | null; maxPrice?: number | null }) =>
     update((current) => ({ price: { ...current.price, ...next } }));
 
-  const parse = (raw: string): number | null => {
-    if (raw.trim() === "") {
-      return null;
-    }
-    const value = Number(raw);
-    return Number.isFinite(value) ? value : null;
-  };
-
   const sliderDefault: [number, number] = [minPrice ?? 0, maxPrice ?? max];
 
   return (
@@ -250,7 +256,7 @@ function PriceControl({ max = 1000, step = 10 }: { max?: number; step?: number }
             aria-label="Minimum price"
             placeholder="Min"
             value={minPrice ?? ""}
-            onChange={(event) => setPrice({ minPrice: parse(event.target.value) })}
+            onChange={(event) => setPrice({ minPrice: parseNumberInput(event.target.value) })}
             className={cn("pl-6", NO_SPINNER_CLASS)}
           />
         </div>
@@ -266,7 +272,7 @@ function PriceControl({ max = 1000, step = 10 }: { max?: number; step?: number }
             aria-label="Maximum price"
             placeholder="Max"
             value={maxPrice ?? ""}
-            onChange={(event) => setPrice({ maxPrice: parse(event.target.value) })}
+            onChange={(event) => setPrice({ maxPrice: parseNumberInput(event.target.value) })}
             className={cn("pl-6", NO_SPINNER_CLASS)}
           />
         </div>
@@ -425,6 +431,169 @@ function Availability() {
   return (
     <Field label="Availability">
       <AvailabilityControl />
+    </Field>
+  );
+}
+
+/**
+ * A compact unit picker: a small trigger showing the current unit that opens a
+ * short list. Lives in the dimensions units bar (not on each input row).
+ */
+function UnitDropdown<V extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: ReadonlyArray<{ value: V; label: string }>;
+  value: V;
+  onChange: (value: V) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        type="button"
+        aria-label={label}
+        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 gap-1 px-2 text-xs")}
+      >
+        {value}
+        <ChevronDown className="size-3 text-muted-foreground" aria-hidden />
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto min-w-[4.5rem] p-1">
+        <ul>
+          {options.map((option) => (
+            <li key={option.value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center justify-between gap-3 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent"
+              >
+                {option.label}
+                {option.value === value ? <Check className="size-3.5" aria-hidden /> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** A labelled min/max number-input pair for one physical dimension. */
+function DimensionRow({
+  label,
+  range,
+  onChange,
+}: {
+  label: string;
+  range: DimensionRange;
+  onChange: (next: Partial<DimensionRange>) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-12 shrink-0 text-sm text-muted-foreground">{label}</span>
+      <Input
+        type="number"
+        inputMode="decimal"
+        min={0}
+        aria-label={`Minimum ${label.toLowerCase()}`}
+        placeholder="Min"
+        value={range.min ?? ""}
+        onChange={(event) => onChange({ min: parseNumberInput(event.target.value) })}
+        className={cn("h-8 flex-1", NO_SPINNER_CLASS)}
+      />
+      <span className="text-muted-foreground">–</span>
+      <Input
+        type="number"
+        inputMode="decimal"
+        min={0}
+        aria-label={`Maximum ${label.toLowerCase()}`}
+        placeholder="Max"
+        value={range.max ?? ""}
+        onChange={(event) => onChange({ max: parseNumberInput(event.target.value) })}
+        className={cn("h-8 flex-1", NO_SPINNER_CLASS)}
+      />
+    </div>
+  );
+}
+
+function DimensionsControl() {
+  const { filters, update } = useProductFilters("ProductFiltersDimensions");
+  const { dimensions } = filters;
+
+  const setRange = (
+    field: "length" | "width" | "height" | "weight",
+    next: Partial<DimensionRange>,
+  ) =>
+    update((current) => ({
+      dimensions: {
+        ...current.dimensions,
+        [field]: { ...current.dimensions[field], ...next },
+      },
+    }));
+
+  const setLengthUnit = (lengthUnit: LengthUnit) =>
+    update((current) => ({ dimensions: { ...current.dimensions, lengthUnit } }));
+  const setWeightUnit = (weightUnit: WeightUnit) =>
+    update((current) => ({ dimensions: { ...current.dimensions, weightUnit } }));
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Length</span>
+          <UnitDropdown
+            label="Length unit"
+            options={LENGTH_UNIT_OPTIONS}
+            value={dimensions.lengthUnit}
+            onChange={setLengthUnit}
+          />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Weight</span>
+          <UnitDropdown
+            label="Weight unit"
+            options={WEIGHT_UNIT_OPTIONS}
+            value={dimensions.weightUnit}
+            onChange={setWeightUnit}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <DimensionRow
+          label="Length"
+          range={dimensions.length}
+          onChange={(next) => setRange("length", next)}
+        />
+        <DimensionRow
+          label="Width"
+          range={dimensions.width}
+          onChange={(next) => setRange("width", next)}
+        />
+        <DimensionRow
+          label="Height"
+          range={dimensions.height}
+          onChange={(next) => setRange("height", next)}
+        />
+        <DimensionRow
+          label="Weight"
+          range={dimensions.weight}
+          onChange={(next) => setRange("weight", next)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function DimensionsField() {
+  return (
+    <Field label="Dimensions">
+      <DimensionsControl />
     </Field>
   );
 }
@@ -1092,6 +1261,9 @@ function Bar({ priceMax, priceStep, className, ...rest }: ProductFiltersBarProps
       <FacetPopover label="Availability" count={counts.availability}>
         <AvailabilityControl />
       </FacetPopover>
+      <FacetPopover label="Dimensions" count={counts.dimensions} contentClassName="w-72">
+        <DimensionsControl />
+      </FacetPopover>
       <FacetPopover label="Color" count={counts.colors} contentClassName="min-w-[14rem]">
         <ColorsControl />
       </FacetPopover>
@@ -1182,6 +1354,7 @@ function DefaultLayout() {
       ["age", initial.age],
       ["condition", initial.condition],
       ["availability", initial.availability],
+      ["dimensions", initial.dimensions],
       ["colors", initial.colors],
       ["brands", initial.brands],
       ["websites", initial.websites],
@@ -1212,6 +1385,9 @@ function DefaultLayout() {
         </FacetSection>
         <FacetSection value="availability" label="Availability" count={counts.availability}>
           <AvailabilityControl />
+        </FacetSection>
+        <FacetSection value="dimensions" label="Dimensions" count={counts.dimensions}>
+          <DimensionsControl />
         </FacetSection>
         <FacetSection value="colors" label="Color" count={counts.colors}>
           <ColorsControl />
@@ -1281,6 +1457,7 @@ export {
   Age as ProductFiltersAge,
   Condition as ProductFiltersCondition,
   Availability as ProductFiltersAvailability,
+  DimensionsField as ProductFiltersDimensions,
   Colors as ProductFiltersColors,
   Brands as ProductFiltersBrands,
   Websites as ProductFiltersWebsites,

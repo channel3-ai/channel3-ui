@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@channel3/sdk':
-        specifier: ^3.3.1
-        version: 3.3.1
+        specifier: ^3.5.1
+        version: 3.5.1
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.7)
@@ -229,8 +229,8 @@ packages:
     resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
     engines: {node: '>=6.9.0'}
 
-  '@channel3/sdk@3.3.1':
-    resolution: {integrity: sha512-0QgkX+liEoWSXRqouRmqdb3uN4bcM7ZLrtgMpDabPys/A3TXQ7qtpXqEDZU+Ma4/T0rh4q2Og3s7Rnu4fHr2GQ==}
+  '@channel3/sdk@3.5.1':
+    resolution: {integrity: sha512-kBskFCc6jlH6SpeeOp7HKCxHLszNiCcCkaRT603iyghWxrG27K5vkLbr3H41wyLKL6fn8Ior/3+HufBhja988g==}
 
   '@dotenvx/dotenvx@1.71.0':
     resolution: {integrity: sha512-KEUw/mGu+EDRhYWRTNGHIimVCs9NvMFaIXOGrHSXoCteKLE5EsJnmPjOPpYorjXVg/0xG0fbdVw720azw1z4ag==}
@@ -3408,7 +3408,7 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@channel3/sdk@3.3.1': {}
+  '@channel3/sdk@3.5.1': {}
 
   '@dotenvx/dotenvx@1.71.0':
     dependencies:

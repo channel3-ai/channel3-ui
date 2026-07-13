@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   countActiveFilters,
+  createEmptyFilters,
+  DEFAULT_LENGTH_UNIT,
+  DEFAULT_WEIGHT_UNIT,
   EMPTY_FILTERS,
   facetCounts,
   isValidHex,
@@ -61,6 +64,62 @@ describe("toSearchFilters", () => {
       toSearchFilters(state({ websites: [{ id: "site-1", url: "https://nike.com" }] })).website_ids,
     ).toEqual(["site-1"]);
   });
+
+  it("omits dimensions when no range is bounded", () => {
+    expect(toSearchFilters(EMPTY_FILTERS).dimensions).toBeUndefined();
+  });
+
+  it("maps bounded dimensions with their shared units, dropping unbounded fields", () => {
+    const result = toSearchFilters(
+      state({
+        dimensions: {
+          ...EMPTY_FILTERS.dimensions,
+          height: { min: null, max: 22 },
+          width: { min: null, max: 14 },
+          weight: { min: null, max: 8 },
+          lengthUnit: "in",
+          weightUnit: "lb",
+        },
+      }),
+    );
+
+    expect(result.dimensions).toEqual({
+      height: { unit: "in", max: 22 },
+      width: { unit: "in", max: 14 },
+      weight: { unit: "lb", max: 8 },
+    });
+  });
+
+  it("includes both bounds when set", () => {
+    const result = toSearchFilters(
+      state({
+        dimensions: {
+          ...EMPTY_FILTERS.dimensions,
+          length: { min: 10, max: 40 },
+          lengthUnit: "cm",
+        },
+      }),
+    );
+
+    expect(result.dimensions).toEqual({ length: { unit: "cm", min: 10, max: 40 } });
+  });
+});
+
+describe("createEmptyFilters", () => {
+  it("defaults the dimension units when none are given", () => {
+    const filters = createEmptyFilters();
+    expect(filters.dimensions.lengthUnit).toBe(DEFAULT_LENGTH_UNIT);
+    expect(filters.dimensions.weightUnit).toBe(DEFAULT_WEIGHT_UNIT);
+    expect(EMPTY_FILTERS.dimensions.lengthUnit).toBe(DEFAULT_LENGTH_UNIT);
+  });
+
+  it("lets the caller choose the starting dimension units", () => {
+    const filters = createEmptyFilters({ lengthUnit: "cm", weightUnit: "kg" });
+    expect(filters.dimensions.lengthUnit).toBe("cm");
+    expect(filters.dimensions.weightUnit).toBe("kg");
+    // Everything else is still cleared.
+    expect(toSearchFilters(filters)).toEqual({});
+  });
 });
 
 describe("facetCounts", () => {
@@ -77,6 +136,21 @@ describe("facetCounts", () => {
         }),
       ),
     ).toMatchObject({ price: 1, age: 2, colors: 1, websites: 1, attributes: 3 });
+  });
+
+  it("counts each bounded dimension field once", () => {
+    expect(facetCounts(EMPTY_FILTERS).dimensions).toBe(0);
+    expect(
+      facetCounts(
+        state({
+          dimensions: {
+            ...EMPTY_FILTERS.dimensions,
+            length: { min: 1, max: null },
+            height: { min: null, max: 20 },
+          },
+        }),
+      ).dimensions,
+    ).toBe(2);
   });
 });
 
