@@ -15,11 +15,35 @@ export type AgeFilter = NonNullable<SearchFilters["age"]>[number];
 export type ConditionFilter = NonNullable<SearchFilters["condition"]>;
 /** Availability values accepted by the search filter. */
 export type AvailabilityFilterValue = AvailabilityStatus;
+/** Units for the length/width/height dimension filters. */
+export type LengthUnit = NonNullable<NonNullable<SearchFilters["dimensions"]>["length"]>["unit"];
+/** Units for the weight dimension filter. */
+export type WeightUnit = NonNullable<NonNullable<SearchFilters["dimensions"]>["weight"]>["unit"];
 
 /** A single color requirement: an sRGB hex with an optional target share (0–1). */
 export interface ColorFilter {
   hex: string;
   percentage?: number | null;
+}
+
+/** A single physical-dimension range; both bounds optional (inclusive). */
+export interface DimensionRange {
+  min: number | null;
+  max: number | null;
+}
+
+/**
+ * Physical size/weight filter state. `length`/`width`/`height` share
+ * `lengthUnit`; `weight` uses `weightUnit`. A range with neither bound set is
+ * dropped from the request.
+ */
+export interface DimensionsFilter {
+  length: DimensionRange;
+  width: DimensionRange;
+  height: DimensionRange;
+  weight: DimensionRange;
+  lengthUnit: LengthUnit;
+  weightUnit: WeightUnit;
 }
 
 /**
@@ -47,22 +71,55 @@ export interface SearchFiltersState {
   attributesByCategory: Record<string, CategoryAttribute[]>;
   /** Selected attribute values keyed by attribute slug (OR within, AND across keys). */
   attributes: Record<string, string[]>;
+  /** Physical size/weight ranges, in the units chosen alongside them. */
+  dimensions: DimensionsFilter;
 }
 
-/** A pristine filter state with everything cleared. */
-export const EMPTY_FILTERS: SearchFiltersState = {
-  price: { minPrice: null, maxPrice: null },
-  gender: null,
-  age: [],
-  condition: null,
-  availability: [],
-  colors: [],
-  brands: [],
-  websites: [],
-  categories: [],
-  attributesByCategory: {},
-  attributes: {},
-};
+/** Fallback unit for the length/width/height filters when no default is given. */
+export const DEFAULT_LENGTH_UNIT: LengthUnit = "in";
+/** Fallback unit for the weight filter when no default is given. */
+export const DEFAULT_WEIGHT_UNIT: WeightUnit = "lb";
+
+/** The units a fresh {@link SearchFiltersState} starts the dimension filters in. */
+export interface DefaultDimensionUnits {
+  /** Starting unit for length/width/height. Defaults to {@link DEFAULT_LENGTH_UNIT}. */
+  lengthUnit?: LengthUnit;
+  /** Starting unit for weight. Defaults to {@link DEFAULT_WEIGHT_UNIT}. */
+  weightUnit?: WeightUnit;
+}
+
+/**
+ * Build a pristine filter state with everything cleared. Pass `units` to choose
+ * the dimension units the panel starts in (e.g. metric); they default to
+ * {@link DEFAULT_LENGTH_UNIT}/{@link DEFAULT_WEIGHT_UNIT}. Use the result as the
+ * controlled `value` you seed `<ProductFilters>` with.
+ */
+export function createEmptyFilters(units?: DefaultDimensionUnits): SearchFiltersState {
+  return {
+    price: { minPrice: null, maxPrice: null },
+    gender: null,
+    age: [],
+    condition: null,
+    availability: [],
+    colors: [],
+    brands: [],
+    websites: [],
+    categories: [],
+    attributesByCategory: {},
+    attributes: {},
+    dimensions: {
+      length: { min: null, max: null },
+      width: { min: null, max: null },
+      height: { min: null, max: null },
+      weight: { min: null, max: null },
+      lengthUnit: units?.lengthUnit ?? DEFAULT_LENGTH_UNIT,
+      weightUnit: units?.weightUnit ?? DEFAULT_WEIGHT_UNIT,
+    },
+  };
+}
+
+/** A pristine filter state with everything cleared, in the default dimension units. */
+export const EMPTY_FILTERS: SearchFiltersState = createEmptyFilters();
 
 /** Selectable option lists, with human labels, for the corresponding fields. */
 export const GENDER_OPTIONS: ReadonlyArray<{ value: GenderFilter; label: string }> = [
@@ -91,6 +148,22 @@ export const AVAILABILITY_OPTIONS: ReadonlyArray<{ value: AvailabilityStatus; la
   { value: "BackOrder", label: "Back-order" },
 ];
 
+export const LENGTH_UNIT_OPTIONS: ReadonlyArray<{ value: LengthUnit; label: string }> = [
+  { value: "mm", label: "mm" },
+  { value: "cm", label: "cm" },
+  { value: "m", label: "m" },
+  { value: "in", label: "in" },
+  { value: "ft", label: "ft" },
+];
+
+export const WEIGHT_UNIT_OPTIONS: ReadonlyArray<{ value: WeightUnit; label: string }> = [
+  { value: "mg", label: "mg" },
+  { value: "g", label: "g" },
+  { value: "kg", label: "kg" },
+  { value: "oz", label: "oz" },
+  { value: "lb", label: "lb" },
+];
+
 const HEX_PATTERN = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /** True when `value` is a 3- or 6-digit hex color, with or without a leading `#`. */
@@ -117,6 +190,18 @@ export function normalizeHex(value: string): string | null {
   return `#${hex}`;
 }
 
+/** Whether a dimension range has at least one bound set. */
+function hasDimensionBound(range: DimensionRange): boolean {
+  return range.min != null || range.max != null;
+}
+
+/** Number of dimension sub-fields (length/width/height/weight) with a bound set. */
+function countDimensions(dimensions: DimensionsFilter): number {
+  return [dimensions.length, dimensions.width, dimensions.height, dimensions.weight].filter(
+    hasDimensionBound,
+  ).length;
+}
+
 /** Active-filter count per facet, for the facet triggers and section badges. */
 export function facetCounts(state: SearchFiltersState) {
   const attributes = Object.values(state.attributes).reduce(
@@ -134,6 +219,7 @@ export function facetCounts(state: SearchFiltersState) {
     websites: state.websites.length,
     categories: state.categories.length,
     attributes,
+    dimensions: countDimensions(state.dimensions),
   };
 }
 
@@ -255,6 +341,42 @@ export function setAttributeValues(
 }
 
 /**
+ * Serialize one dimension range to the SDK shape, or `null` when it has no
+ * bounds (the SDK requires `unit`, so it's only included alongside a bound).
+ */
+function toDimensionRange<U extends LengthUnit | WeightUnit>(
+  range: DimensionRange,
+  unit: U,
+): { unit: U; min?: number; max?: number } | null {
+  if (!hasDimensionBound(range)) {
+    return null;
+  }
+  return {
+    unit,
+    ...(range.min != null ? { min: range.min } : {}),
+    ...(range.max != null ? { max: range.max } : {}),
+  };
+}
+
+/** Serialize the dimensions filter, dropping unbounded fields and the whole facet when empty. */
+function toDimensionsFilter(dimensions: DimensionsFilter): NonNullable<SearchFilters["dimensions"]> | null {
+  const { lengthUnit, weightUnit } = dimensions;
+  const length = toDimensionRange(dimensions.length, lengthUnit);
+  const width = toDimensionRange(dimensions.width, lengthUnit);
+  const height = toDimensionRange(dimensions.height, lengthUnit);
+  const weight = toDimensionRange(dimensions.weight, weightUnit);
+  if (!length && !width && !height && !weight) {
+    return null;
+  }
+  return {
+    ...(length ? { length } : {}),
+    ...(width ? { width } : {}),
+    ...(height ? { height } : {}),
+    ...(weight ? { weight } : {}),
+  };
+}
+
+/**
  * Convert the UI filter state into the SDK {@link SearchFilters} payload,
  * dropping empty facets so the request stays minimal. Call this on your server
  * before handing the result to `client.products.search`.
@@ -301,6 +423,10 @@ export function toSearchFilters(state: SearchFiltersState): SearchFilters {
   const attributeKeys = Object.keys(state.attributes);
   if (attributeKeys.length > 0) {
     filters.attributes = state.attributes;
+  }
+  const dimensions = toDimensionsFilter(state.dimensions);
+  if (dimensions) {
+    filters.dimensions = dimensions;
   }
 
   return filters;
