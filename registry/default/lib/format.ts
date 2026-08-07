@@ -74,23 +74,26 @@ export function availabilityLabel(status: AvailabilityStatus): string {
   return AVAILABILITY_LABELS[status];
 }
 
+/** API cleaned square lives on `cleaned_url`. */
+type Image = ProductImage & { cleaned_url?: string | null };
+
 /**
  * Pick the best image to show for a product.
  *
- * `preferCleaned` favors `is_cleaned_image` shots (square, uniform background)
- * for grid/card contexts; otherwise the main image (or first image) wins.
+ * `preferCleaned` favors cleaned shots (square, uniform background) for
+ * grid/card contexts; otherwise the main image (or first image) wins.
  */
 export function pickImage(
-  images: ReadonlyArray<ProductImage> | undefined,
+  images: ReadonlyArray<Image> | undefined,
   { preferCleaned = false }: { preferCleaned?: boolean } = {},
 ): ProductImage | undefined {
-  if (!images || images.length === 0) {
+  if (!images?.length) {
     return undefined;
   }
   if (preferCleaned) {
-    const cleaned = images.find((image) => image.is_cleaned_image);
+    const cleaned = images.find((image) => image.cleaned_url || image.is_cleaned_image);
     if (cleaned) {
-      return cleaned;
+      return cleaned.cleaned_url ? { ...cleaned, url: cleaned.cleaned_url } : cleaned;
     }
   }
   return images.find((image) => image.is_main_image) ?? images[0];
