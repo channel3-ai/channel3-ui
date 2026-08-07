@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Price, ProductImage, ProductOffer } from "@channel3/sdk/resources";
+import type { Price, ProductOffer } from "@channel3/sdk/resources";
 
 import {
   availabilityLabel,
@@ -98,17 +98,37 @@ describe("isSoldOut", () => {
 });
 
 describe("pickImage", () => {
-  const images: ProductImage[] = [
-    { url: "a", is_main_image: true },
-    { url: "b", is_cleaned_image: true },
-  ];
+  it("prefers cleaned_url when asked", () => {
+    expect(
+      pickImage(
+        [
+          { url: "a", is_main_image: true },
+          { url: "b", cleaned_url: "b-clean" },
+        ],
+        { preferCleaned: true },
+      )?.url,
+    ).toBe("b-clean");
+  });
 
-  it("prefers cleaned images when asked", () => {
-    expect(pickImage(images, { preferCleaned: true })?.url).toBe("b");
+  it("falls back to legacy is_cleaned_image", () => {
+    expect(
+      pickImage(
+        [
+          { url: "a", is_main_image: true },
+          { url: "b", is_cleaned_image: true },
+        ],
+        { preferCleaned: true },
+      )?.url,
+    ).toBe("b");
   });
 
   it("prefers the main image otherwise", () => {
-    expect(pickImage(images)?.url).toBe("a");
+    expect(
+      pickImage([
+        { url: "a", is_main_image: true },
+        { url: "b", cleaned_url: "b-clean" },
+      ])?.url,
+    ).toBe("a");
   });
 
   it("returns undefined for empty input", () => {
