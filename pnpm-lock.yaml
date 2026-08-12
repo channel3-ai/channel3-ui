@@ -91,7 +91,7 @@ importers:
         specifier: ^8.0.16
         version: 8.2.0(@types/node@25.9.5)(jiti@2.7.0)
       vitest:
-        specifier: ^4.1.8
+        specifier: ^4.1.10
         version: 4.1.10(@types/node@25.9.5)(happy-dom@20.11.1)(vite@8.2.0(@types/node@25.9.5)(jiti@2.7.0))
 
 packages:
