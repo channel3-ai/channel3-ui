@@ -9,7 +9,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { formatCurrency, formatDomain, formatPrice, isInStock, isOnSale } from "@/registry/default/lib/format";
 
 export interface OffersListProps extends React.ComponentProps<"div"> {
-  /** Merchant offers for a product, from `ProductDetail.offers`. */
+  /** Merchant offers for a product, from `Product.offers`. */
   offers: ReadonlyArray<ProductOffer>;
   /**
    * Called when a merchant's buy link is clicked. The link still navigates to

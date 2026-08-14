@@ -37,7 +37,7 @@
   },
   "packageManager": "pnpm@10.34.5",
   "dependencies": {
-    "@channel3/sdk": "^3.5.1",
+    "@channel3/sdk": "4.0.0-beta.4",
     "embla-carousel-react": "^8.6.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.7",

@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail, SearchFilters } from "@channel3/sdk/resources";
+import type { OptionValue, Product, SearchFilters } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import { ProductCarousel } from "@/registry/default/components/product-carousel";
@@ -7,8 +7,6 @@ import {
   type SimilarFetcher,
   useProductRecommendations,
 } from "@/registry/default/hooks/use-product-recommendations";
-
-type OptionValue = ProductDetail.Variants.Option.Value;
 
 export interface ProductRecommendationsProps
   extends Omit<React.ComponentProps<"section">, "onSelect" | "title"> {
@@ -29,13 +27,13 @@ export interface ProductRecommendationsProps
   /** Number of skeleton cards shown while loading. Defaults to 6. */
   skeletonCount?: number;
   /** Per-product destination URL; makes each card a crawlable `<a href>`. */
-  getHref?: (product: ProductDetail) => string;
+  getHref?: (product: Product) => string;
   /** Forwarded to each card. */
-  onSelect?: (product: ProductDetail) => void;
+  onSelect?: (product: Product) => void;
   /** Forwarded to each card; prefetch hook on hover/focus/touch. */
-  onPreload?: (product: ProductDetail) => void;
+  onPreload?: (product: Product) => void;
   /** Forwarded to each card for color-swatch navigation. */
-  onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
+  onSelectVariant?: (product: Product, value: OptionValue) => void;
   /** Show color swatches below the price on each card. */
   showSwatches?: boolean;
   /** Locale override for price formatting. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, VariantOption, Variants } from "@channel3/sdk/resources";
 
 import {
   isSwatchOption,
@@ -7,8 +7,6 @@ import {
   selectionFromVariants,
   valueState,
 } from "@/registry/default/lib/variants";
-
-type OptionValue = ProductDetail.Variants.Option.Value;
 
 const value = (overrides: Partial<OptionValue> & { label: string; exists: boolean }): OptionValue => ({
   ...overrides,
@@ -40,7 +38,7 @@ describe("valueState", () => {
   });
 });
 
-const variants: ProductDetail.Variants = {
+const variants: Variants = {
   options: [
     {
       name: "Color",
@@ -69,8 +67,8 @@ describe("selection helpers", () => {
   });
 
   it("detects swatch options by thumbnail presence", () => {
-    expect(isSwatchOption(variants.options[0] as ProductDetail.Variants.Option)).toBe(true);
-    expect(isSwatchOption(variants.options[1] as ProductDetail.Variants.Option)).toBe(false);
+    expect(isSwatchOption(variants.options[0] as VariantOption)).toBe(true);
+    expect(isSwatchOption(variants.options[1] as VariantOption)).toBe(false);
   });
 
   it("merges a pending selection over the resolved one", () => {

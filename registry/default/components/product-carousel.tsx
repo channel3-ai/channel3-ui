@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, Product } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import {
@@ -11,19 +11,17 @@ import {
 } from "@/components/ui/carousel";
 import { ProductCard, ProductCardSkeleton } from "@/registry/default/components/product-card";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
 export interface ProductCarouselProps extends Omit<React.ComponentProps<"div">, "onSelect" | "title"> {
   /** Products to render as horizontally scrollable cards. */
-  products: ReadonlyArray<ProductDetail>;
+  products: ReadonlyArray<Product>;
   /** Per-product destination URL; makes each card a crawlable `<a href>`. */
-  getHref?: (product: ProductDetail) => string;
+  getHref?: (product: Product) => string;
   /** Forwarded to each {@link ProductCard}. */
-  onSelect?: (product: ProductDetail) => void;
+  onSelect?: (product: Product) => void;
   /** Forwarded to each {@link ProductCard}; prefetch hook on hover/focus/touch. */
-  onPreload?: (product: ProductDetail) => void;
+  onPreload?: (product: Product) => void;
   /** Forwarded to each {@link ProductCard} for color-swatch navigation. */
-  onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
+  onSelectVariant?: (product: Product, value: OptionValue) => void;
   /** Forwarded to each {@link ProductCard}; show color swatches below the price. */
   showSwatches?: boolean;
   /** Optional heading shown above the row, next to the nav controls. */

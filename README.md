@@ -7,7 +7,7 @@ with the shadcn CLI and own it like any other component in your project.
 
 Every component is typed directly against
 [`@channel3/sdk`](https://www.npmjs.com/package/@channel3/sdk), so a
-`ProductDetail` from a search or a product fetch drops straight in — no adapters,
+`Product` from a search or a product fetch drops straight in — no adapters,
 no mapping layer.
 
 ![Product search — search bar, faceted filters, and an infinite-scroll product grid](.github/assets/search-results.png)
@@ -92,10 +92,10 @@ of `src/`.
 ## Quick start
 
 ```tsx
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Product } from "@channel3/sdk/resources";
 import { ProductGrid } from "@/components/product-grid";
 
-export function Results({ products }: { products: ProductDetail[] }) {
+export function Results({ products }: { products: Product[] }) {
   return <ProductGrid products={products} onSelect={(p) => navigate(`/p/${p.id}`)} />;
 }
 ```
@@ -112,13 +112,13 @@ then hand the results to these components:
 
 ```ts
 // server-only — runs where CHANNEL3_API_KEY lives, never in the browser
-import Channel3 from "@channel3/sdk";
+import { Channel3 } from "@channel3/sdk";
 
 const client = new Channel3({ apiKey: process.env.CHANNEL3_API_KEY! });
 
 export async function searchProducts(query: string) {
   const page = await client.products.search({ query });
-  return page.products; // ProductDetail[] — hand straight to <ProductGrid>
+  return page.data; // Product[] — hand straight to <ProductGrid>
 }
 ```
 

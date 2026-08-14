@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Product } from "@channel3/sdk/resources";
 
 import {
   type SearchFetcher,
@@ -17,7 +17,7 @@ class MockIntersectionObserver {
   disconnect() {}
 }
 
-const product = (id: string): ProductDetail => ({ id, title: id, structured_attributes: {} });
+const product = (id: string): Product => ({ id, title: id, structured_attributes: {} });
 
 beforeEach(() => {
   vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);

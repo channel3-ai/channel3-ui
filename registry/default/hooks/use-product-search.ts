@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail, SearchFilters } from "@channel3/sdk/resources";
+import type { Product, SearchFilters } from "@channel3/sdk/resources";
 
 import {
   EMPTY_FILTERS,
@@ -28,7 +28,7 @@ export interface SearchFetchInput {
 
 /** A single page of search results. */
 export interface SearchPage {
-  products: ProductDetail[];
+  products: Product[];
   /** Cursor for the next page, or `null`/`undefined` when exhausted. */
   nextPageToken?: string | null;
 }
@@ -76,7 +76,7 @@ export interface UseProductSearchResult {
   /** The active image query, if any. */
   image: ImageQuery | null;
   /** Products for the current query/filters across all loaded pages. */
-  results: ProductDetail[];
+  results: Product[];
   /** True while the first page is loading (results are being replaced). */
   isLoading: boolean;
   /** True while a subsequent page is loading (results are being appended). */
@@ -95,7 +95,7 @@ export interface UseProductSearchResult {
   reset: () => void;
 }
 
-const EMPTY: ProductDetail[] = [];
+const EMPTY: Product[] = [];
 
 function hasCriteria(query: string, image: ImageQuery | null): boolean {
   return query.trim().length > 0 || image != null;
@@ -137,7 +137,7 @@ export function useProductSearch({
   filtersRef.current = filters;
   imageRef.current = image;
 
-  const fetchPage = React.useCallback<PageFetcher<ProductDetail>>(
+  const fetchPage = React.useCallback<PageFetcher<Product>>(
     (pageToken) =>
       Promise.resolve(
         fetchSearch({
@@ -157,7 +157,7 @@ export function useProductSearch({
   // useInfiniteScroll owns the paged list (seed + appended pages). Each first
   // page is pushed in via `reset`, which also cancels any in-flight pagination
   // from the previous search, so the latest seed always wins.
-  const { reset: resetPages, ...infinite } = useInfiniteScroll<ProductDetail>({
+  const { reset: resetPages, ...infinite } = useInfiniteScroll<Product>({
     initialItems: EMPTY,
     initialPageToken: null,
     fetchPage,

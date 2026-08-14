@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { PriceHistory, ProductDetail, ProductOffer } from "@channel3/sdk/resources";
+import type { OptionValue, PriceHistoryResponse, Product, ProductOffer } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -13,8 +13,6 @@ import { VariantSelector } from "@/registry/default/components/variant-selector"
 import type { SimilarFetcher } from "@/registry/default/hooks/use-product-recommendations";
 import { formatCurrency, formatPrice, isInStock, isOnSale, leadOffer } from "@/registry/default/lib/format";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
 /** Pass-through config for the optional "you might also like" section. */
 export interface ProductDetailsRecommendationsConfig {
   /** Max recommendations to request. Defaults to 12. */
@@ -26,24 +24,24 @@ export interface ProductDetailsRecommendationsConfig {
   /** Number of skeleton cards shown while loading. */
   skeletonCount?: number;
   /** Per-recommendation destination URL; makes each card a crawlable `<a href>`. */
-  getHref?: (product: ProductDetail) => string;
+  getHref?: (product: Product) => string;
   /** Fired when a recommended card is activated. */
-  onSelect?: (product: ProductDetail) => void;
+  onSelect?: (product: Product) => void;
   /** Prefetch hook fired when a recommended card is hovered/focused/touched. */
-  onPreload?: (product: ProductDetail) => void;
+  onPreload?: (product: Product) => void;
   /** Fired when a recommended card's color swatch is clicked. */
-  onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
+  onSelectVariant?: (product: Product, value: OptionValue) => void;
   /** Show color swatches on recommended cards. */
   showSwatches?: boolean;
 }
 
 interface ProductDetailsContextValue {
-  product: ProductDetail;
+  product: Product;
   selection: Record<string, string> | undefined;
   onSelectVariant: ((optionName: string, value: OptionValue) => void) | undefined;
   onOfferClick: ((offer: ProductOffer) => void) | undefined;
   buyLinkRel: string | undefined;
-  priceHistory: PriceHistory | undefined;
+  priceHistory: PriceHistoryResponse | undefined;
   isResolving: boolean;
   locale: string | undefined;
   /** A hovered swatch's value, previewed in the gallery (no fetch). */
@@ -65,7 +63,7 @@ function useProductDetails(component: string): ProductDetailsContextValue {
 
 export interface ProductDetailsProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
   /** The product to display (a detail fetch, ideally with hydrated variants). */
-  product: ProductDetail;
+  product: Product;
   /** Controlled variant selection (`{ optionName: label }`); defaults to `variants.selected`. */
   selection?: Record<string, string>;
   /** Fired when a variant value is chosen — wire to {@link useVariantSelection}. */
@@ -75,7 +73,7 @@ export interface ProductDetailsProps extends Omit<React.ComponentProps<"div">, "
   /** `rel` for merchant buy links. Use `"sponsored noopener noreferrer"` for affiliate links. */
   buyLinkRel?: string;
   /** Optional price-tracking history to render the price section. */
-  priceHistory?: PriceHistory;
+  priceHistory?: PriceHistoryResponse;
   /** Dim the variant controls while a re-resolve is in flight. */
   isResolving?: boolean;
   /** Locale override for price formatting. */
@@ -309,7 +307,7 @@ function Recommendations({ fetchSimilar, ...rest }: ProductDetailsRecommendation
   );
 }
 
-function hasAttributes(product: ProductDetail): boolean {
+function hasAttributes(product: Product): boolean {
   return (
     Boolean(product.category) ||
     Object.keys(product.structured_attributes ?? {}).length > 0 ||

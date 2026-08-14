@@ -44,7 +44,7 @@ describe("toSearchFilters", () => {
       price: { min_price: 50, max_price: 200 },
       gender: "female",
       age: ["kids", "toddler"],
-      condition: "new",
+      conditions: ["new"],
       availability: ["InStock"],
       colors: { palette: [{ hex: "#000000" }, { hex: "#ff0000", percentage: 0.5 }] },
       brand_ids: ["nike"],

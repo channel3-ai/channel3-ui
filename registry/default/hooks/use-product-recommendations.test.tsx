@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Product } from "@channel3/sdk/resources";
 
 import { useProductRecommendations } from "@/registry/default/hooks/use-product-recommendations";
 
@@ -30,7 +30,7 @@ class MockIntersectionObserver {
   }
 }
 
-const products: ProductDetail[] = [
+const products: Product[] = [
   { id: "a", title: "A", structured_attributes: {} },
   { id: "b", title: "B", structured_attributes: {} },
 ];

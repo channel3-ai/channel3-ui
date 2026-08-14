@@ -11,6 +11,7 @@ import {
   isSoldOut,
   leadOffer,
   pickImage,
+  productImageUrl,
 } from "@/registry/default/lib/format";
 
 const price = (value: number, compareAt?: number): Price => ({
@@ -57,13 +58,9 @@ describe("formatDomain", () => {
 });
 
 describe("availability", () => {
-  it("treats only InStock and LimitedAvailability as in stock", () => {
+  it("treats only InStock as in stock", () => {
     expect(isInStock("InStock")).toBe(true);
-    expect(isInStock("LimitedAvailability")).toBe(true);
-    expect(isInStock("PreOrder")).toBe(false);
-    expect(isInStock("BackOrder")).toBe(false);
     expect(isInStock("OutOfStock")).toBe(false);
-    expect(isInStock("Discontinued")).toBe(false);
   });
 
   it("labels statuses", () => {
@@ -97,38 +94,34 @@ describe("isSoldOut", () => {
   });
 });
 
+describe("productImageUrl", () => {
+  it("uses cleaned_url when preferCleaned is set", () => {
+    expect(productImageUrl({ url: "b", cleaned_url: "b-clean" }, { preferCleaned: true })).toBe(
+      "b-clean",
+    );
+  });
+
+  it("falls back to url when preferCleaned is set but cleaned_url is missing", () => {
+    expect(productImageUrl({ url: "b" }, { preferCleaned: true })).toBe("b");
+  });
+
+  it("returns url otherwise", () => {
+    expect(productImageUrl({ url: "a", cleaned_url: "a-clean" })).toBe("a");
+  });
+});
+
 describe("pickImage", () => {
-  it("prefers cleaned_url when asked", () => {
-    expect(
-      pickImage(
-        [
-          { url: "a", is_main_image: true },
-          { url: "b", cleaned_url: "b-clean" },
-        ],
-        { preferCleaned: true },
-      )?.url,
-    ).toBe("b-clean");
-  });
-
-  it("falls back to legacy is_cleaned_image", () => {
-    expect(
-      pickImage(
-        [
-          { url: "a", is_main_image: true },
-          { url: "b", is_cleaned_image: true },
-        ],
-        { preferCleaned: true },
-      )?.url,
-    ).toBe("b");
-  });
-
-  it("prefers the main image otherwise", () => {
+  it("prefers the main image", () => {
     expect(
       pickImage([
         { url: "a", is_main_image: true },
         { url: "b", cleaned_url: "b-clean" },
       ])?.url,
     ).toBe("a");
+  });
+
+  it("falls back to the first image when none is marked main", () => {
+    expect(pickImage([{ url: "a" }, { url: "b" }])?.url).toBe("a");
   });
 
   it("returns undefined for empty input", () => {

@@ -1,5 +1,5 @@
 import type {
-  AvailabilityStatus,
+  OfferAvailabilityStatus,
   Price,
   ProductImage,
   ProductOffer,
@@ -43,58 +43,48 @@ export function formatDomain(domain: string): string {
   return domain.replace(/^https?:\/\//, "").replace(/^www\./, "");
 }
 
-const IN_STOCK: ReadonlySet<AvailabilityStatus> = new Set<AvailabilityStatus>([
-  "InStock",
-  "LimitedAvailability",
-]);
-
 /**
- * The single in-stock definition used across the kit: a status is "in stock"
- * when it's `InStock` or `LimitedAvailability`. Everything else (pre-order,
- * back-order, sold out, …) reads as not in stock for lead-offer selection,
- * sold-out badges, and variant emphasis.
+ * The single in-stock definition used across the kit, for lead-offer
+ * selection, sold-out badges, and variant emphasis.
  */
-export function isInStock(status: AvailabilityStatus): boolean {
-  return IN_STOCK.has(status);
+export function isInStock(status: OfferAvailabilityStatus): boolean {
+  return status === "InStock";
 }
 
-const AVAILABILITY_LABELS: Record<AvailabilityStatus, string> = {
+const AVAILABILITY_LABELS: Record<OfferAvailabilityStatus, string> = {
   InStock: "In stock",
-  LimitedAvailability: "Limited availability",
-  PreOrder: "Pre-order",
-  BackOrder: "Back-order",
-  SoldOut: "Sold out",
   OutOfStock: "Out of stock",
-  Discontinued: "Discontinued",
-  Unknown: "Unavailable",
 };
 
 /** Human-readable label for an availability status. */
-export function availabilityLabel(status: AvailabilityStatus): string {
+export function availabilityLabel(status: OfferAvailabilityStatus): string {
   return AVAILABILITY_LABELS[status];
 }
 
-/** API cleaned square lives on `cleaned_url`. */
-type Image = ProductImage & { cleaned_url?: string | null };
-
 /**
- * Pick the best image to show for a product.
- *
- * `preferCleaned` favors cleaned shots (square, uniform background) for
- * grid/card contexts; otherwise the main image (or first image) wins.
+ * Display URL for an image. `preferCleaned` picks the background-removed square
+ * variant when the API has one — right for grids and cards, wrong for detail
+ * galleries, which should show the regular shot.
  */
-export function pickImage(
-  images: ReadonlyArray<Image> | undefined,
+export function productImageUrl(
+  image: ProductImage,
   { preferCleaned = false }: { preferCleaned?: boolean } = {},
-): ProductImage | undefined {
-  if (!images?.length) {
-    return undefined;
-  }
+): string {
   if (preferCleaned) {
-    const cleaned = images.find((image) => image.cleaned_url || image.is_cleaned_image);
+    const cleaned = image.cleaned_url;
     if (cleaned) {
-      return cleaned.cleaned_url ? { ...cleaned, url: cleaned.cleaned_url } : cleaned;
+      return cleaned;
     }
+  }
+  return image.url;
+}
+
+/** The main image, falling back to the first one. */
+export function pickImage(
+  images: ReadonlyArray<ProductImage> | undefined,
+): ProductImage | undefined {
+  if (!images || images.length === 0) {
+    return undefined;
   }
   return images.find((image) => image.is_main_image) ?? images[0];
 }

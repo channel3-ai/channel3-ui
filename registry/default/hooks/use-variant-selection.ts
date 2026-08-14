@@ -1,15 +1,13 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, Product } from "@channel3/sdk/resources";
 
 import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
 import { mergeSelection, selectionFromVariants } from "@/registry/default/lib/variants";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
 /** Arguments handed to a {@link VariantResolver} when a value is chosen. */
 export interface VariantResolveInput {
   /** The product currently displayed. */
-  product: ProductDetail;
+  product: Product;
   /** Name of the option that changed (e.g. "Color"). */
   optionName: string;
   /**
@@ -29,27 +27,27 @@ export interface VariantResolveInput {
  * Resolves a new product configuration. Implement this on the consumer side so
  * the Channel3 API key stays on your server: call
  * `client.get(`/v1/products/${id}`, { query: { option_Color: "Blue", ... } })`
- * (or fetch `value.product_id`) and return the resolved `ProductDetail`.
+ * (or fetch `value.product_id`) and return the resolved `Product`.
  */
-export type VariantResolver = (input: VariantResolveInput) => Promise<ProductDetail>;
+export type VariantResolver = (input: VariantResolveInput) => Promise<Product>;
 
 export interface UseVariantSelectionOptions {
   /** Initial product, from search results or a detail fetch. */
-  product: ProductDetail;
+  product: Product;
   /**
    * Re-resolves the product when a value is selected. Omit for a read-only
    * selector that only tracks selection locally.
    */
   resolve?: VariantResolver;
   /** Called after a resolved product replaces the current one. */
-  onResolved?: (product: ProductDetail) => void;
+  onResolved?: (product: Product) => void;
   /** Called when `resolve` rejects. */
   onError?: (error: unknown) => void;
 }
 
 export interface UseVariantSelectionResult {
   /** The product to render — the initial one, or the latest resolved one. */
-  product: ProductDetail;
+  product: Product;
   /** Effective selection as `{ optionName: label }`, reflecting server relaxation. */
   selection: Record<string, string>;
   /** True while a `resolve` call is in flight. */

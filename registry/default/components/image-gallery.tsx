@@ -55,7 +55,7 @@ function GalleryImage({
 }
 
 export interface ImageGalleryProps extends React.ComponentProps<"div"> {
-  /** Product images, typically `ProductDetail.images`. */
+  /** Product images, typically `Product.images`. */
   images: ReadonlyArray<ProductImage>;
   /**
    * Transient image to overlay on the active slide (e.g. a hovered variant

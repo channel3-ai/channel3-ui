@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, Product } from "@channel3/sdk/resources";
 import { SlidersHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -19,8 +19,6 @@ import {
   type SearchFetcher,
   useProductSearch,
 } from "@/registry/default/hooks/use-product-search";
-
-type OptionValue = ProductDetail.Variants.Option.Value;
 
 const filterTransition = "duration-200 ease-out";
 
@@ -75,9 +73,9 @@ export interface ProductSearchProps extends Omit<React.ComponentProps<"div">, "o
   /** Placeholder for the search input. */
   placeholder?: string;
   /** Fired when a result card is activated. */
-  onSelect?: (product: ProductDetail) => void;
+  onSelect?: (product: Product) => void;
   /** Fired when a color swatch on a result is clicked. */
-  onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
+  onSelectVariant?: (product: Product, value: OptionValue) => void;
   /** Show color swatches on result cards. */
   showSwatches?: boolean;
   /** Locale override for price formatting. */

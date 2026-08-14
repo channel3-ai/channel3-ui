@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, VariantOption, Variants } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import {
@@ -8,9 +8,6 @@ import {
   selectionFromVariants,
   valueState,
 } from "@/registry/default/lib/variants";
-
-type Option = ProductDetail.Variants.Option;
-type OptionValue = ProductDetail.Variants.Option.Value;
 
 const PILL_STATE: Record<ValueState, string> = {
   selected: "border-primary bg-primary text-primary-foreground",
@@ -27,8 +24,8 @@ const SWATCH_STATE: Record<ValueState, string> = {
 };
 
 export interface VariantSelectorProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
-  /** Variant state from a `ProductDetail`. */
-  variants: ProductDetail.Variants;
+  /** Variant state from a `Product`. */
+  variants: Variants;
   /**
    * Controlled selection as `{ optionName: label }`. Defaults to the resolved
    * `variants.selected`. Pass a pending selection to reflect an in-flight
@@ -85,7 +82,7 @@ function OptionGroup({
   onSelect,
   onValuePreview,
 }: {
-  option: Option;
+  option: VariantOption;
   selectedLabel: string | undefined;
   onSelect: VariantSelectorProps["onSelect"];
   onValuePreview: VariantSelectorProps["onValuePreview"];

@@ -1,8 +1,8 @@
 import type {
-  AvailabilityStatus,
   Brand,
   CategoryAttribute,
   CategorySummary,
+  OfferAvailabilityStatus,
   SearchFilters,
   Website,
 } from "@channel3/sdk/resources";
@@ -12,9 +12,9 @@ export type GenderFilter = NonNullable<SearchFilters["gender"]>;
 /** Age-group values accepted by the search filter. */
 export type AgeFilter = NonNullable<SearchFilters["age"]>[number];
 /** Condition values accepted by the search filter. */
-export type ConditionFilter = NonNullable<SearchFilters["condition"]>;
+export type ConditionFilter = NonNullable<SearchFilters["conditions"]>[number];
 /** Availability values accepted by the search filter. */
-export type AvailabilityFilterValue = AvailabilityStatus;
+export type AvailabilityFilterValue = OfferAvailabilityStatus;
 /** Units for the length/width/height dimension filters. */
 export type LengthUnit = NonNullable<NonNullable<SearchFilters["dimensions"]>["length"]>["unit"];
 /** Units for the weight dimension filter. */
@@ -59,7 +59,7 @@ export interface SearchFiltersState {
   gender: GenderFilter | null;
   age: AgeFilter[];
   condition: ConditionFilter | null;
-  availability: AvailabilityStatus[];
+  availability: OfferAvailabilityStatus[];
   colors: ColorFilter[];
   brands: Brand[];
   websites: Website[];
@@ -137,15 +137,12 @@ export const AGE_OPTIONS: ReadonlyArray<{ value: AgeFilter; label: string }> = [
 
 export const CONDITION_OPTIONS: ReadonlyArray<{ value: ConditionFilter; label: string }> = [
   { value: "new", label: "New" },
-  { value: "refurbished", label: "Refurbished" },
   { value: "used", label: "Used" },
 ];
 
-export const AVAILABILITY_OPTIONS: ReadonlyArray<{ value: AvailabilityStatus; label: string }> = [
+export const AVAILABILITY_OPTIONS: ReadonlyArray<{ value: OfferAvailabilityStatus; label: string }> = [
   { value: "InStock", label: "In stock" },
-  { value: "LimitedAvailability", label: "Limited" },
-  { value: "PreOrder", label: "Pre-order" },
-  { value: "BackOrder", label: "Back-order" },
+  { value: "OutOfStock", label: "Out of stock" },
 ];
 
 export const LENGTH_UNIT_OPTIONS: ReadonlyArray<{ value: LengthUnit; label: string }> = [
@@ -398,7 +395,7 @@ export function toSearchFilters(state: SearchFiltersState): SearchFilters {
     filters.age = state.age;
   }
   if (state.condition) {
-    filters.condition = state.condition;
+    filters.conditions = [state.condition];
   }
   if (state.availability.length > 0) {
     filters.availability = state.availability;

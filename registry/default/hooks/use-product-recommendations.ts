@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail, SearchFilters } from "@channel3/sdk/resources";
+import type { Product, SearchFilters } from "@channel3/sdk/resources";
 
 import { useInViewport } from "@/registry/default/hooks/use-in-viewport";
 import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
@@ -20,7 +20,7 @@ export interface SimilarFetchInput {
  * `client.products.findSimilar({ product_id, limit, filters })` and return its
  * `.products`.
  */
-export type SimilarFetcher = (input: SimilarFetchInput) => Promise<ProductDetail[]>;
+export type SimilarFetcher = (input: SimilarFetchInput) => Promise<Product[]>;
 
 export interface UseProductRecommendationsOptions {
   /** Canonical id of the product on the page. A PDP always has one. */
@@ -41,7 +41,7 @@ export interface UseProductRecommendationsResult {
   /** Attach to the section wrapper; fetching starts when it enters the viewport. */
   ref: (node: Element | null) => void;
   /** Resolved recommendations (empty until loaded). */
-  products: ProductDetail[];
+  products: Product[];
   /** True while the fetch is in flight. */
   isLoading: boolean;
   /** The last fetch error, or `null`. */
@@ -50,7 +50,7 @@ export interface UseProductRecommendationsResult {
   hasLoaded: boolean;
 }
 
-const EMPTY: ProductDetail[] = [];
+const EMPTY: Product[] = [];
 
 /**
  * Lazily loads "you might also like" recommendations for a product. The fetch
@@ -66,7 +66,7 @@ export function useProductRecommendations({
   eager = false,
   enabled = true,
 }: UseProductRecommendationsOptions): UseProductRecommendationsResult {
-  const [products, setProducts] = React.useState<ProductDetail[]>(EMPTY);
+  const [products, setProducts] = React.useState<Product[]>(EMPTY);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<unknown>(null);
   const [hasLoaded, setHasLoaded] = React.useState(false);

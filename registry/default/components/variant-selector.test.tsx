@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Variants } from "@channel3/sdk/resources";
 
 import { VariantSelector } from "@/registry/default/components/variant-selector";
 
-const variants: ProductDetail.Variants = {
+const variants: Variants = {
   options: [
     {
       name: "Color",

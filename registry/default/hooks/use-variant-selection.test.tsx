@@ -1,12 +1,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, Product } from "@channel3/sdk/resources";
 
 import { useVariantSelection } from "@/registry/default/hooks/use-variant-selection";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
-const product = (id: string, selectedColor = "Blue"): ProductDetail => ({
+const product = (id: string, selectedColor = "Blue"): Product => ({
   id,
   title: id,
   structured_attributes: {},
@@ -28,9 +26,9 @@ const black: OptionValue = { label: "Black", exists: true };
 
 describe("useVariantSelection", () => {
   it("optimistically reflects the pending selection while resolve is in flight", async () => {
-    let settle: ((resolved: ProductDetail) => void) | null = null;
+    let settle: ((resolved: Product) => void) | null = null;
     const resolve = vi.fn(
-      () => new Promise<ProductDetail>((res) => { settle = res; }),
+      () => new Promise<Product>((res) => { settle = res; }),
     );
     const { result } = renderHook(() => useVariantSelection({ product: product("a"), resolve }));
 
@@ -44,9 +42,9 @@ describe("useVariantSelection", () => {
   });
 
   it("discards a resolve that lands after the input product is swapped", async () => {
-    let settle: ((resolved: ProductDetail) => void) | null = null;
+    let settle: ((resolved: Product) => void) | null = null;
     const resolve = vi.fn(
-      () => new Promise<ProductDetail>((res) => { settle = res; }),
+      () => new Promise<Product>((res) => { settle = res; }),
     );
     const onResolved = vi.fn();
     const { result, rerender } = renderHook(

@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Product } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ const titleCase = (value: string) => value.charAt(0).toUpperCase() + value.slice
  * when the richer `materials` array is present so the same fact isn't shown
  * twice.
  */
-function buildAttributes(product: ProductDetail): Attribute[] {
+function buildAttributes(product: Product): Attribute[] {
   const rows: Attribute[] = [];
 
   if (product.category?.title) {
@@ -65,7 +65,7 @@ function buildAttributes(product: ProductDetail): Attribute[] {
 
 export interface ProductAttributesProps extends React.ComponentProps<"dl"> {
   /** The product whose extracted attributes are displayed. */
-  product: ProductDetail;
+  product: Product;
 }
 
 /**
