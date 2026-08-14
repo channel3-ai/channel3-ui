@@ -17,20 +17,14 @@ export function formatCurrency(amount: number, currency: string, locale?: string
   }
 }
 
-/** Format a Channel3 `Price` using its embedded currency code. */
 export function formatPrice(price: Price, locale?: string): string {
   return formatCurrency(price.price, price.currency, locale);
 }
 
-/** True when the price carries a higher pre-discount `compare_at_price`. */
 export function isOnSale(price: Price): boolean {
   return typeof price.compare_at_price === "number" && price.compare_at_price > price.price;
 }
 
-/**
- * Whole-number discount percentage derived from `compare_at_price`, or `null`
- * when the item isn't discounted.
- */
 export function discountPercent(price: Price): number | null {
   if (!isOnSale(price) || !price.compare_at_price) {
     return null;
@@ -38,15 +32,10 @@ export function discountPercent(price: Price): number | null {
   return Math.round(((price.compare_at_price - price.price) / price.compare_at_price) * 100);
 }
 
-/** Strip protocol and a leading `www.` from a retailer domain for display. */
 export function formatDomain(domain: string): string {
   return domain.replace(/^https?:\/\//, "").replace(/^www\./, "");
 }
 
-/**
- * The single in-stock definition used across the kit, for lead-offer
- * selection, sold-out badges, and variant emphasis.
- */
 export function isInStock(status: OfferAvailabilityStatus): boolean {
   return status === "InStock";
 }
@@ -56,7 +45,6 @@ const AVAILABILITY_LABELS: Record<OfferAvailabilityStatus, string> = {
   OutOfStock: "Out of stock",
 };
 
-/** Human-readable label for an availability status. */
 export function availabilityLabel(status: OfferAvailabilityStatus): string {
   return AVAILABILITY_LABELS[status];
 }
@@ -79,7 +67,6 @@ export function productImageUrl(
   return image.url;
 }
 
-/** The main image, falling back to the first one. */
 export function pickImage(
   images: ReadonlyArray<ProductImage> | undefined,
 ): ProductImage | undefined {
@@ -140,7 +127,6 @@ export function pickHoverImage(
   return candidates[0];
 }
 
-/** Lowest-priced offer, preferring in-stock merchants. */
 export function leadOffer(offers: ReadonlyArray<ProductOffer> | undefined): ProductOffer | undefined {
   if (!offers || offers.length === 0) {
     return undefined;
@@ -149,7 +135,6 @@ export function leadOffer(offers: ReadonlyArray<ProductOffer> | undefined): Prod
   return byPrice.find((offer) => isInStock(offer.availability)) ?? byPrice[0];
 }
 
-/** True when offers exist but none are in stock. */
 export function isSoldOut(offers: ReadonlyArray<ProductOffer> | undefined): boolean {
   return Boolean(offers && offers.length > 0 && !offers.some((o) => isInStock(o.availability)));
 }

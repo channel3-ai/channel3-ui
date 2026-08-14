@@ -17,15 +17,11 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export interface PriceHistoryChartProps extends React.ComponentProps<"div"> {
-  /** Time-ordered price points from `GET /v0/price-tracking/history`. */
   history: ReadonlyArray<PriceHistoryPoint>;
-  /** Currency override; defaults to the currency on the first point. */
   currency?: string;
-  /** Locale override for axis and tooltip formatting. */
   locale?: string;
 }
 
-/** Area chart of a product's price over time. */
 export function PriceHistoryChart({
   history,
   currency,

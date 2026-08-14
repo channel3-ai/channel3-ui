@@ -6,32 +6,20 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { ProductCard, ProductCardSkeleton } from "@/registry/default/components/product-card";
 
 export interface ProductGridProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
-  /** Products to render, typically a page of search results. */
   products: ReadonlyArray<Product>;
-  /** Per-product destination URL; makes each card a crawlable `<a href>`. */
   getHref?: (product: Product) => string;
-  /** Forwarded to each {@link ProductCard}. */
   onSelect?: (product: Product) => void;
-  /** Forwarded to each {@link ProductCard}; prefetch hook on hover/focus/touch. */
   onPreload?: (product: Product) => void;
-  /** Forwarded to each {@link ProductCard} for color-swatch navigation. */
   onSelectVariant?: (product: Product, value: OptionValue) => void;
-  /** Forwarded to each {@link ProductCard}; show color swatches below the price. */
   showSwatches?: boolean;
-  /** Show skeleton placeholders instead of products. */
   loading?: boolean;
-  /** Number of skeletons to render while loading. */
   skeletonCount?: number;
-  /** Custom node rendered when there are no products and not loading. */
   emptyState?: React.ReactNode;
-  /** Locale override for price formatting. */
   locale?: string;
 }
 
-/** First row of cards (widest layout) loaded eagerly as likely-LCP imagery. */
 const PRIORITY_COUNT = 4;
 
-/** Responsive grid of {@link ProductCard}s with loading and empty states. */
 export function ProductGrid({
   products,
   getHref,

@@ -10,42 +10,23 @@ import {
 
 export interface ProductRecommendationsProps
   extends Omit<React.ComponentProps<"section">, "onSelect" | "title"> {
-  /** Canonical id of the product on the page (the PDP's `product.id`). */
   productId: string | undefined;
   /** Server-side fetcher wrapping `client.products.findSimilar`. */
   fetchSimilar: SimilarFetcher;
-  /** Heading above the row. Defaults to "You might also like". */
   title?: React.ReactNode;
-  /** Max recommendations to request. Defaults to 12. */
   limit?: number;
-  /** Optional filters forwarded to the fetcher (e.g. same gender/brand). */
   filters?: SearchFilters;
-  /** Fetch on mount instead of when the section scrolls into view. */
   eager?: boolean;
-  /** Suspend fetching entirely (e.g. a feature flag). Defaults to `true`. */
   enabled?: boolean;
-  /** Number of skeleton cards shown while loading. Defaults to 6. */
   skeletonCount?: number;
-  /** Per-product destination URL; makes each card a crawlable `<a href>`. */
   getHref?: (product: Product) => string;
-  /** Forwarded to each card. */
   onSelect?: (product: Product) => void;
-  /** Forwarded to each card; prefetch hook on hover/focus/touch. */
   onPreload?: (product: Product) => void;
-  /** Forwarded to each card for color-swatch navigation. */
   onSelectVariant?: (product: Product, value: OptionValue) => void;
-  /** Show color swatches below the price on each card. */
   showSwatches?: boolean;
-  /** Locale override for price formatting. */
   locale?: string;
 }
 
-/**
- * Lazy "you might also like" carousel for a PDP. Defers the `findSimilar` fetch
- * until the section scrolls into view (so it never blocks the page), shows a
- * skeleton row while loading, and renders nothing once it's known there are no
- * recommendations. Reuses {@link ProductCarousel} for the row itself.
- */
 export function ProductRecommendations({
   productId,
   fetchSimilar,
@@ -73,7 +54,6 @@ export function ProductRecommendations({
     enabled,
   });
 
-  // Once loaded with nothing to show, collapse entirely.
   if (hasLoaded && products.length === 0) {
     return null;
   }

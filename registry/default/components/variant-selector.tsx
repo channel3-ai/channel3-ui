@@ -24,13 +24,7 @@ const SWATCH_STATE: Record<ValueState, string> = {
 };
 
 export interface VariantSelectorProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
-  /** Variant state from a `Product`. */
   variants: Variants;
-  /**
-   * Controlled selection as `{ optionName: label }`. Defaults to the resolved
-   * `variants.selected`. Pass a pending selection to reflect an in-flight
-   * re-resolve.
-   */
   value?: Record<string, string>;
   /**
    * Fired when a value is chosen. Re-resolve the product server-side with
@@ -39,18 +33,9 @@ export interface VariantSelectorProps extends Omit<React.ComponentProps<"div">, 
    * relax the rest of the configuration.
    */
   onSelect?: (optionName: string, value: OptionValue) => void;
-  /**
-   * Fired as a swatch is hovered/focused (the value) and left/blurred (`null`).
-   * Wire to a gallery preview to show that color's `thumbnail_url` without a
-   * fetch. Only swatch options emit this; text pills don't.
-   */
   onValuePreview?: (value: OptionValue | null) => void;
 }
 
-/**
- * Renders every variant dimension of a product as pills (or image swatches),
- * with three tiers of emphasis driven by `exists` and `available`.
- */
 export function VariantSelector({
   variants,
   value,

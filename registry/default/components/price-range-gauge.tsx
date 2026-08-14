@@ -6,11 +6,6 @@ import { formatCurrency } from "@/registry/default/lib/format";
 
 type PriceStatus = PriceStatistics["current_status"];
 
-/**
- * Price-quality has no semantic shadcn token (a "good price" isn't
- * `foreground` or `destructive`), so these literal palette colors are
- * intentional and shared by both light and dark themes.
- */
 const ZONE_FILL: Record<PriceStatus, string> = {
   low: "bg-emerald-500/70",
   typical: "bg-amber-500/70",
@@ -33,13 +28,10 @@ const STATUS_TEXT: Record<PriceStatus, string> = {
 const WINDOW = 2;
 
 export interface PriceRangeGaugeProps extends React.ComponentProps<"div"> {
-  /** Price statistics from `GET /v0/price-tracking/history`. */
   statistics: PriceStatistics;
-  /** Override the locale used to format prices. */
   locale?: string;
 }
 
-/** Current price on a three-zone gauge (low / typical / high vs `mean ± std_dev`). */
 export function PriceRangeGauge({ statistics, locale, className, ...props }: PriceRangeGaugeProps) {
   const { min_price, max_price, current_price, currency, mean, std_dev, current_status } =
     statistics;

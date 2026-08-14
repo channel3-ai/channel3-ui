@@ -64,15 +64,9 @@ function buildAttributes(product: Product): Attribute[] {
 }
 
 export interface ProductAttributesProps extends React.ComponentProps<"dl"> {
-  /** The product whose extracted attributes are displayed. */
   product: Product;
 }
 
-/**
- * Renders a product's extracted attributes (`structured_attributes`, plus
- * `materials`, `gender`, and `age`) as a two-column definition list. Returns
- * `null` when there's nothing to show.
- */
 export function ProductAttributes({ product, className, ...props }: ProductAttributesProps) {
   const attributes = buildAttributes(product);
   if (attributes.length === 0) {

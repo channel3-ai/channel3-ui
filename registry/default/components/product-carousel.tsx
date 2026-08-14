@@ -12,36 +12,23 @@ import {
 import { ProductCard, ProductCardSkeleton } from "@/registry/default/components/product-card";
 
 export interface ProductCarouselProps extends Omit<React.ComponentProps<"div">, "onSelect" | "title"> {
-  /** Products to render as horizontally scrollable cards. */
   products: ReadonlyArray<Product>;
-  /** Per-product destination URL; makes each card a crawlable `<a href>`. */
   getHref?: (product: Product) => string;
-  /** Forwarded to each {@link ProductCard}. */
   onSelect?: (product: Product) => void;
-  /** Forwarded to each {@link ProductCard}; prefetch hook on hover/focus/touch. */
   onPreload?: (product: Product) => void;
-  /** Forwarded to each {@link ProductCard} for color-swatch navigation. */
   onSelectVariant?: (product: Product, value: OptionValue) => void;
-  /** Forwarded to each {@link ProductCard}; show color swatches below the price. */
   showSwatches?: boolean;
-  /** Optional heading shown above the row, next to the nav controls. */
   title?: React.ReactNode;
-  /** Show skeleton placeholders instead of products. */
   loading?: boolean;
-  /** Number of skeletons to render while loading. */
   skeletonCount?: number;
-  /** Locale override for price formatting. */
   locale?: string;
-  /** Per-item width/responsive basis. Override to show more cards per view. */
   itemClassName?: string;
-  /** How many leading cards load eagerly at high priority. Defaults to 4. */
   priorityCount?: number;
 }
 
 const ITEM_BASIS = "basis-1/2 sm:basis-1/2 md:basis-1/3 lg:basis-1/4";
 const NAV_CLASS = "static size-8 translate-x-0 translate-y-0";
 
-/** Horizontally scrollable row of {@link ProductCard}s (e.g. "More like this"). */
 export function ProductCarousel({
   products,
   getHref,

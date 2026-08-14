@@ -117,7 +117,6 @@ describe("createEmptyFilters", () => {
     const filters = createEmptyFilters({ lengthUnit: "cm", weightUnit: "kg" });
     expect(filters.dimensions.lengthUnit).toBe("cm");
     expect(filters.dimensions.weightUnit).toBe("kg");
-    // Everything else is still cleared.
     expect(toSearchFilters(filters)).toEqual({});
   });
 });

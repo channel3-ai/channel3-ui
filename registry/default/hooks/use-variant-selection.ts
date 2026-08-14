@@ -4,11 +4,8 @@ import type { OptionValue, Product } from "@channel3/sdk/resources";
 import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
 import { mergeSelection, selectionFromVariants } from "@/registry/default/lib/variants";
 
-/** Arguments handed to a {@link VariantResolver} when a value is chosen. */
 export interface VariantResolveInput {
-  /** The product currently displayed. */
   product: Product;
-  /** Name of the option that changed (e.g. "Color"). */
   optionName: string;
   /**
    * The chosen value. Carries `product_id`/`thumbnail_url` for color-as-product
@@ -32,31 +29,22 @@ export interface VariantResolveInput {
 export type VariantResolver = (input: VariantResolveInput) => Promise<Product>;
 
 export interface UseVariantSelectionOptions {
-  /** Initial product, from search results or a detail fetch. */
   product: Product;
   /**
    * Re-resolves the product when a value is selected. Omit for a read-only
    * selector that only tracks selection locally.
    */
   resolve?: VariantResolver;
-  /** Called after a resolved product replaces the current one. */
   onResolved?: (product: Product) => void;
-  /** Called when `resolve` rejects. */
   onError?: (error: unknown) => void;
 }
 
 export interface UseVariantSelectionResult {
-  /** The product to render — the initial one, or the latest resolved one. */
   product: Product;
-  /** Effective selection as `{ optionName: label }`, reflecting server relaxation. */
   selection: Record<string, string>;
-  /** True while a `resolve` call is in flight. */
   isResolving: boolean;
-  /** The last `resolve` error, or `null`. */
   error: unknown;
-  /** Select a value for an option. Wire to `VariantSelector.onSelect`. */
   select: (optionName: string, value: OptionValue) => void;
-  /** Clear any pending (optimistic) selection and error. */
   reset: () => void;
 }
 
@@ -80,13 +68,8 @@ export function useVariantSelection({
   const [isResolving, setIsResolving] = React.useState(false);
   const [error, setError] = React.useState<unknown>(null);
 
-  // Ignore stale resolves when selections fire in quick succession or the input
-  // product is swapped mid-resolve.
   const { run, cancel } = useLatestRequest();
 
-  // Adopt a new product when the consumer swaps the input (e.g. new search hit),
-  // discarding any in-flight resolve for the previous product so it can't
-  // clobber the freshly-swapped one.
   const lastInputId = React.useRef(initialProduct.id);
   React.useEffect(() => {
     if (initialProduct.id !== lastInputId.current) {

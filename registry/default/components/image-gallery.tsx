@@ -17,7 +17,6 @@ function GalleryImage({
   priority = false,
 }: {
   image: ProductImage;
-  /** Load eagerly at high fetch priority (the initially visible main slide). */
   priority?: boolean;
 }) {
   const [failed, setFailed] = React.useState(false);
@@ -55,7 +54,6 @@ function GalleryImage({
 }
 
 export interface ImageGalleryProps extends React.ComponentProps<"div"> {
-  /** Product images, typically `Product.images`. */
   images: ReadonlyArray<ProductImage>;
   /**
    * Transient image to overlay on the active slide (e.g. a hovered variant
@@ -65,7 +63,6 @@ export interface ImageGalleryProps extends React.ComponentProps<"div"> {
   previewSrc?: string | null;
 }
 
-/** Product image carousel with a synced thumbnail strip. */
 export function ImageGallery({ images, previewSrc, className, ...props }: ImageGalleryProps) {
   const [api, setApi] = React.useState<CarouselApi>();
   const [selected, setSelected] = React.useState(0);
