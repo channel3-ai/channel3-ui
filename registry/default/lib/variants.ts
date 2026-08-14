@@ -45,10 +45,6 @@ export function swatchOption(variants: Variants): VariantOption | undefined {
   return variants.options.find(isSwatchOption);
 }
 
-/**
- * Merge a pending selection over the server-resolved selection. Used to build
- * the `option_<name>=<label>` query for a re-resolve fetch.
- */
 export function mergeSelection(
   variants: Variants,
   pending: Record<string, string>,

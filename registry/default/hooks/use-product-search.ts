@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import type { Product, SearchFilters } from "@channel3/sdk/resources";
 
 import {
@@ -6,11 +7,7 @@ import {
   type SearchFiltersState,
   toSearchFilters,
 } from "@/registry/default/lib/search";
-import {
-  type PageFetcher,
-  useInfiniteScroll,
-} from "@/registry/default/hooks/use-infinite-scroll";
-import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
+import { useInViewport } from "@/registry/default/hooks/use-in-viewport";
 
 export interface SearchFetchInput {
   query: string;
@@ -72,6 +69,12 @@ export interface UseProductSearchResult {
 
 const EMPTY: Product[] = [];
 
+interface SearchCriteria {
+  query: string;
+  filters: SearchFiltersState;
+  image: ImageQuery | null;
+}
+
 function hasCriteria(query: string, image: ImageQuery | null): boolean {
   return query.trim().length > 0 || image != null;
 }
@@ -87,106 +90,71 @@ export function useProductSearch({
   const [query, setQueryState] = React.useState(initialQuery);
   const [filters, setFiltersState] = React.useState<SearchFiltersState>(initialFilters);
   const [image, setImage] = React.useState<ImageQuery | null>(null);
-
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [firstPageError, setFirstPageError] = React.useState<unknown>(null);
-
-  const { run: runFirstPageRequest, cancel: cancelFirstPage } = useLatestRequest();
   const [submitNonce, setSubmitNonce] = React.useState(0);
+  const [active, setActive] = React.useState<SearchCriteria | null>(null);
 
-  const queryRef = React.useRef(query);
-  const filtersRef = React.useRef(filters);
-  const imageRef = React.useRef(image);
-  queryRef.current = query;
-  filtersRef.current = filters;
-  imageRef.current = image;
+  const skipFirst = React.useRef(!searchOnMount);
 
-  const fetchPage = React.useCallback<PageFetcher<Product>>(
-    (pageToken) =>
-      Promise.resolve(
-        fetchSearch({
-          query: queryRef.current,
-          imageUrl: imageRef.current?.imageUrl,
-          base64Image: imageRef.current?.base64Image,
-          filters: toSearchFilters(filtersRef.current),
-          pageToken,
-        }),
-      ).then((page) => ({
-        items: page.products,
-        nextPageToken: page.nextPageToken,
-      })),
-    [fetchSearch],
-  );
-
-  const { reset: resetPages, ...infinite } = useInfiniteScroll<Product>({
-    initialItems: EMPTY,
-    initialPageToken: null,
-    fetchPage,
-  });
-
-  const runFirstPage = React.useCallback(() => {
-    const q = queryRef.current;
-    const img = imageRef.current;
-    if (!hasCriteria(q, img)) {
-      cancelFirstPage();
-      resetPages();
-      setIsLoading(false);
-      setFirstPageError(null);
+  React.useEffect(() => {
+    if (skipFirst.current && submitNonce === 0) {
+      skipFirst.current = false;
       return;
     }
-    setIsLoading(true);
-    setFirstPageError(null);
-    runFirstPageRequest(
-      Promise.resolve(
-        fetchSearch({
-          query: q,
-          imageUrl: img?.imageUrl,
-          base64Image: img?.base64Image,
-          filters: toSearchFilters(filtersRef.current),
-        }),
-      ),
-      {
-        onResolve: (page) =>
-          resetPages({ items: page.products, nextPageToken: page.nextPageToken }),
-        onReject: (caught) => {
-          setFirstPageError(caught);
-          resetPages();
-        },
-        onSettle: () => setIsLoading(false),
-      },
-    );
-  }, [fetchSearch, resetPages, runFirstPageRequest, cancelFirstPage]);
+    if (!autoSearch && submitNonce === 0) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setActive({ query, filters, image });
+    }, debounceMs);
+    return () => clearTimeout(timer);
+  }, [query, filters, image, submitNonce, autoSearch, debounceMs]);
+
+  const enabled = active != null && hasCriteria(active.query, active.image);
+
+  const infinite = useInfiniteQuery({
+    queryKey: [
+      "channel3-product-search",
+      active?.query ?? "",
+      active ? toSearchFilters(active.filters) : {},
+      active?.image?.imageUrl ?? null,
+      active?.image?.base64Image ?? null,
+    ],
+    queryFn: ({ pageParam }) =>
+      fetchSearch({
+        query: active!.query,
+        imageUrl: active!.image?.imageUrl,
+        base64Image: active!.image?.base64Image,
+        filters: toSearchFilters(active!.filters),
+        pageToken: pageParam,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextPageToken ?? undefined,
+    enabled,
+  });
 
   const setQuery = React.useCallback((next: string) => setQueryState(next), []);
   const setFilters = React.useCallback((next: SearchFiltersState) => setFiltersState(next), []);
   const searchByImage = React.useCallback((next: ImageQuery | null) => setImage(next), []);
   const submit = React.useCallback(() => setSubmitNonce((value) => value + 1), []);
 
-  const mounted = React.useRef(false);
-
-  React.useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-      if (!searchOnMount && submitNonce === 0) {
-        return;
-      }
-    }
-    if (!autoSearch && submitNonce === 0) {
-      return;
-    }
-    const timer = setTimeout(runFirstPage, debounceMs);
-    return () => clearTimeout(timer);
-  }, [query, filters, image, submitNonce, autoSearch, debounceMs, runFirstPage, searchOnMount]);
-
   const reset = React.useCallback(() => {
-    cancelFirstPage();
     setQueryState("");
     setFiltersState(EMPTY_FILTERS);
     setImage(null);
-    resetPages();
-    setFirstPageError(null);
-    setIsLoading(false);
-  }, [resetPages, cancelFirstPage]);
+    setSubmitNonce(0);
+    setActive(null);
+  }, []);
+
+  const loadMore = () => {
+    if (!infinite.hasNextPage || infinite.isFetchingNextPage) {
+      return;
+    }
+    void infinite.fetchNextPage();
+  };
+
+  const [sentinel, setSentinel] = React.useState<Element | null>(null);
+  const sentinelRef = React.useCallback((node: Element | null) => setSentinel(node), []);
+  useInViewport(sentinel, loadMore, { enabled: Boolean(infinite.hasNextPage), rootMargin: "200px" });
 
   return {
     query,
@@ -195,13 +163,13 @@ export function useProductSearch({
     setFilters,
     searchByImage,
     image,
-    results: infinite.items,
-    isLoading,
-    isLoadingMore: infinite.isLoadingMore,
-    error: firstPageError ?? infinite.error,
-    hasMore: infinite.hasMore,
-    loadMore: infinite.loadMore,
-    sentinelRef: infinite.sentinelRef,
+    results: enabled ? (infinite.data?.pages.flatMap((page) => page.products) ?? EMPTY) : EMPTY,
+    isLoading: infinite.isFetching && !infinite.isFetchingNextPage,
+    isLoadingMore: infinite.isFetchingNextPage,
+    error: infinite.error,
+    hasMore: Boolean(infinite.hasNextPage),
+    loadMore,
+    sentinelRef,
     submit,
     reset,
   };

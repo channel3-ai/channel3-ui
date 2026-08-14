@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { OptionValue, Product } from "@channel3/sdk/resources";
 
 import { useVariantSelection } from "@/registry/default/hooks/use-variant-selection";
+import { createQueryWrapper } from "@/registry/default/hooks/query-test-wrapper";
 
 const product = (id: string, selectedColor = "Blue"): Product => ({
   id,
@@ -30,12 +31,16 @@ describe("useVariantSelection", () => {
     const resolve = vi.fn(
       () => new Promise<Product>((res) => { settle = res; }),
     );
-    const { result } = renderHook(() => useVariantSelection({ product: product("a"), resolve }));
+    const { result } = renderHook(
+      () => useVariantSelection({ product: product("a"), resolve }),
+      { wrapper: createQueryWrapper() },
+    );
 
     act(() => result.current.select("Color", black));
     expect(result.current.selection.Color).toBe("Black");
     expect(result.current.isResolving).toBe(true);
 
+    await waitFor(() => expect(resolve).toHaveBeenCalledTimes(1));
     act(() => settle?.(product("a", "Black")));
     await waitFor(() => expect(result.current.isResolving).toBe(false));
     expect(result.current.selection.Color).toBe("Black");
@@ -49,11 +54,12 @@ describe("useVariantSelection", () => {
     const onResolved = vi.fn();
     const { result, rerender } = renderHook(
       ({ product: p }) => useVariantSelection({ product: p, resolve, onResolved }),
-      { initialProps: { product: product("a") } },
+      { initialProps: { product: product("a") }, wrapper: createQueryWrapper() },
     );
 
     act(() => result.current.select("Color", black));
     expect(result.current.isResolving).toBe(true);
+    await waitFor(() => expect(resolve).toHaveBeenCalledTimes(1));
 
     // Consumer swaps to a different product (e.g. a new search hit) mid-resolve.
     act(() => rerender({ product: product("b") }));
@@ -69,7 +75,9 @@ describe("useVariantSelection", () => {
   });
 
   it("tracks selection locally without a resolver", () => {
-    const { result } = renderHook(() => useVariantSelection({ product: product("a") }));
+    const { result } = renderHook(() => useVariantSelection({ product: product("a") }), {
+      wrapper: createQueryWrapper(),
+    });
     act(() => result.current.select("Color", black));
     expect(result.current.selection.Color).toBe("Black");
     expect(result.current.isResolving).toBe(false);

@@ -37,18 +37,6 @@
       ]
     },
     {
-      "name": "use-latest-request",
-      "type": "registry:hook",
-      "title": "useLatestRequest",
-      "description": "Latest-wins guard for overlapping async work: tracks the most recent request and drops stale responses from superseded ones.",
-      "files": [
-        {
-          "path": "registry/default/hooks/use-latest-request.ts",
-          "type": "registry:hook"
-        }
-      ]
-    },
-    {
       "name": "use-in-viewport",
       "type": "registry:hook",
       "title": "useInViewport",
@@ -66,11 +54,11 @@
       "title": "useVariantSelection",
       "description": "Manages variant selection and server-side re-resolution via an injected resolver, keeping the API key on your server.",
       "dependencies": [
-        "@channel3/sdk"
+        "@channel3/sdk",
+        "@tanstack/react-query"
       ],
       "registryDependencies": [
-        "https://ui.trychannel3.com/r/variants.json",
-        "https://ui.trychannel3.com/r/use-latest-request.json"
+        "https://ui.trychannel3.com/r/variants.json"
       ],
       "files": [
         {
@@ -100,11 +88,11 @@
       "title": "useProductRecommendations",
       "description": "Lazily fetches similar products when the section scrolls into view, via an injected fetcher, so it never blocks the PDP.",
       "dependencies": [
-        "@channel3/sdk"
+        "@channel3/sdk",
+        "@tanstack/react-query"
       ],
       "registryDependencies": [
-        "https://ui.trychannel3.com/r/use-in-viewport.json",
-        "https://ui.trychannel3.com/r/use-latest-request.json"
+        "https://ui.trychannel3.com/r/use-in-viewport.json"
       ],
       "files": [
         {
@@ -118,8 +106,8 @@
       "type": "registry:hook",
       "title": "useAsyncOptions",
       "description": "Debounced typeahead loader for brand/category suggestions, delegating to an injected server-side fetcher.",
-      "registryDependencies": [
-        "https://ui.trychannel3.com/r/use-latest-request.json"
+      "dependencies": [
+        "@tanstack/react-query"
       ],
       "files": [
         {
@@ -129,33 +117,17 @@
       ]
     },
     {
-      "name": "use-infinite-scroll",
-      "type": "registry:hook",
-      "title": "useInfiniteScroll",
-      "description": "Headless infinite-scroll pagination over a token-paged list: seeds an initial page, appends subsequent pages via an injected fetcher, and exposes a sentinel ref.",
-      "registryDependencies": [
-        "https://ui.trychannel3.com/r/use-in-viewport.json",
-        "https://ui.trychannel3.com/r/use-latest-request.json"
-      ],
-      "files": [
-        {
-          "path": "registry/default/hooks/use-infinite-scroll.ts",
-          "type": "registry:hook"
-        }
-      ]
-    },
-    {
       "name": "use-product-search",
       "type": "registry:hook",
       "title": "useProductSearch",
-      "description": "Query + filter state, debounced auto-search, and infinite-scroll pagination via an injected search fetcher.",
+      "description": "Query + filter state, debounced search, and infinite-scroll pagination via TanStack Query and an injected search fetcher.",
       "dependencies": [
-        "@channel3/sdk"
+        "@channel3/sdk",
+        "@tanstack/react-query"
       ],
       "registryDependencies": [
         "https://ui.trychannel3.com/r/search.json",
-        "https://ui.trychannel3.com/r/use-infinite-scroll.json",
-        "https://ui.trychannel3.com/r/use-latest-request.json"
+        "https://ui.trychannel3.com/r/use-in-viewport.json"
       ],
       "files": [
         {

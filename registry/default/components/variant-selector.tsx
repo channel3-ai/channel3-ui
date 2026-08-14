@@ -26,12 +26,6 @@ const SWATCH_STATE: Record<ValueState, string> = {
 export interface VariantSelectorProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
   variants: Variants;
   value?: Record<string, string>;
-  /**
-   * Fired when a value is chosen. Re-resolve the product server-side with
-   * `option_<name>=<label>` (or navigate to `value.product_id` when set).
-   * Values are never disabled — selecting an unavailable value lets the server
-   * relax the rest of the configuration.
-   */
   onSelect?: (optionName: string, value: OptionValue) => void;
   onValuePreview?: (value: OptionValue | null) => void;
 }

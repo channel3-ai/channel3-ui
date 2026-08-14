@@ -6,6 +6,7 @@ import {
   type SearchFetcher,
   useProductSearch,
 } from "@/registry/default/hooks/use-product-search";
+import { createQueryWrapper } from "@/registry/default/hooks/query-test-wrapper";
 
 class MockIntersectionObserver {
   callback: IntersectionObserverCallback;
@@ -30,7 +31,9 @@ afterEach(() => {
 describe("useProductSearch", () => {
   it("does not search until there are criteria", async () => {
     const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [] });
-    renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }));
+    renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }), {
+      wrapper: createQueryWrapper(),
+    });
     await Promise.resolve();
     expect(fetchSearch).not.toHaveBeenCalled();
   });
@@ -40,7 +43,9 @@ describe("useProductSearch", () => {
       products: [product("a"), product("b")],
       nextPageToken: "1",
     });
-    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }));
+    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     act(() => result.current.setQuery("nike"));
 
@@ -56,7 +61,9 @@ describe("useProductSearch", () => {
       .fn<SearchFetcher>()
       .mockResolvedValueOnce({ products: [product("a")], nextPageToken: "1" })
       .mockResolvedValueOnce({ products: [product("b")], nextPageToken: null });
-    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }));
+    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }), {
+      wrapper: createQueryWrapper(),
+    });
 
     act(() => result.current.setQuery("nike"));
     await waitFor(() => expect(result.current.results).toHaveLength(1));
@@ -69,8 +76,9 @@ describe("useProductSearch", () => {
 
   it("only searches on submit when autoSearch is off", async () => {
     const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [product("a")] });
-    const { result } = renderHook(() =>
-      useProductSearch({ fetchSearch, debounceMs: 0, autoSearch: false }),
+    const { result } = renderHook(
+      () => useProductSearch({ fetchSearch, debounceMs: 0, autoSearch: false }),
+      { wrapper: createQueryWrapper() },
     );
 
     act(() => result.current.setQuery("nike"));

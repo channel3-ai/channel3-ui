@@ -1,8 +1,8 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Product, SearchFilters } from "@channel3/sdk/resources";
 
 import { useInViewport } from "@/registry/default/hooks/use-in-viewport";
-import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
 
 export interface SimilarFetchInput {
   productId: string;
@@ -45,42 +45,27 @@ export function useProductRecommendations({
   eager = false,
   enabled = true,
 }: UseProductRecommendationsOptions): UseProductRecommendationsResult {
-  const [products, setProducts] = React.useState<Product[]>(EMPTY);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<unknown>(null);
-  const [hasLoaded, setHasLoaded] = React.useState(false);
   const [inView, setInView] = React.useState(eager);
-
   const [node, setNode] = React.useState<Element | null>(null);
   const ref = React.useCallback((next: Element | null) => setNode(next), []);
 
-  const { run, cancel } = useLatestRequest();
-
   React.useEffect(() => {
-    cancel();
-    setProducts(EMPTY);
-    setError(null);
-    setHasLoaded(false);
     setInView(eager);
-  }, [productId, eager, cancel]);
+  }, [productId, eager]);
 
   useInViewport(node, () => setInView(true), { enabled: !eager && !inView, once: true });
 
-  React.useEffect(() => {
-    if (!enabled || !inView || !productId) {
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    run(Promise.resolve(fetchSimilar({ productId, limit, filters })), {
-      onResolve: (result) => {
-        setProducts(result);
-        setHasLoaded(true);
-      },
-      onReject: (caught) => setError(caught),
-      onSettle: () => setIsLoading(false),
-    });
-  }, [enabled, inView, productId, limit, filters, fetchSimilar, run]);
+  const query = useQuery({
+    queryKey: ["channel3-similar", productId, limit, filters],
+    queryFn: () => fetchSimilar({ productId: productId!, limit, filters }),
+    enabled: Boolean(enabled && inView && productId),
+  });
 
-  return { ref, products, isLoading, error, hasLoaded };
+  return {
+    ref,
+    products: query.data ?? EMPTY,
+    isLoading: query.isFetching,
+    error: query.error,
+    hasLoaded: query.isSuccess,
+  };
 }
