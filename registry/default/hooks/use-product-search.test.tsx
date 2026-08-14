@@ -88,4 +88,87 @@ describe("useProductSearch", () => {
     act(() => result.current.submit());
     await waitFor(() => expect(fetchSearch).toHaveBeenCalledTimes(1));
   });
+
+  it("searches on mount when searchOnMount is set and there is a query", async () => {
+    const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [product("a")] });
+    const { result } = renderHook(
+      () =>
+        useProductSearch({
+          fetchSearch,
+          debounceMs: 0,
+          searchOnMount: true,
+          initialQuery: "nike",
+        }),
+      { wrapper: createQueryWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.results).toHaveLength(1));
+    expect(fetchSearch).toHaveBeenCalledWith(expect.objectContaining({ query: "nike" }));
+  });
+
+  it("does not search on mount without criteria", async () => {
+    const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [] });
+    renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0, searchOnMount: true }), {
+      wrapper: createQueryWrapper(),
+    });
+    await Promise.resolve();
+    expect(fetchSearch).not.toHaveBeenCalled();
+  });
+
+  it("searches by image without a text query", async () => {
+    const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [product("a")] });
+    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => result.current.searchByImage({ imageUrl: "https://img.example/shoe.jpg" }));
+    await waitFor(() => expect(result.current.results).toHaveLength(1));
+    expect(fetchSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "", imageUrl: "https://img.example/shoe.jpg" }),
+    );
+  });
+
+  it("waits for the debounce before searching", async () => {
+    const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [product("a")] });
+    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 40 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => result.current.setQuery("nike"));
+    await Promise.resolve();
+    expect(fetchSearch).not.toHaveBeenCalled();
+
+    await waitFor(() => expect(fetchSearch).toHaveBeenCalledTimes(1));
+  });
+
+  it("exposes a search error and keeps results empty", async () => {
+    const fetchSearch = vi.fn<SearchFetcher>().mockRejectedValue(new Error("upstream"));
+    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => result.current.setQuery("nike"));
+    await waitFor(() => expect(result.current.error).toBeInstanceOf(Error));
+    expect(result.current.results).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it("clears query, image, filters, and results on reset", async () => {
+    const fetchSearch = vi.fn<SearchFetcher>().mockResolvedValue({ products: [product("a")] });
+    const { result } = renderHook(() => useProductSearch({ fetchSearch, debounceMs: 0 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    act(() => {
+      result.current.setQuery("nike");
+      result.current.searchByImage({ imageUrl: "https://img.example/shoe.jpg" });
+    });
+    await waitFor(() => expect(result.current.results).toHaveLength(1));
+
+    act(() => result.current.reset());
+    expect(result.current.query).toBe("");
+    expect(result.current.image).toBeNull();
+    expect(result.current.results).toEqual([]);
+    expect(result.current.error).toBeNull();
+  });
 });

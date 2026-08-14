@@ -45,8 +45,9 @@ export function PriceRangeGauge({ statistics, locale, className, ...props }: Pri
     return Math.min(100, Math.max(0, (fromCenter + 1) * 50));
   };
 
-  const greenEnd = hasRange ? pos(lowBound) : 0;
-  const yellowEnd = hasRange ? pos(highBound) : 0;
+  // Stable prices keep the same three-zone layout with a centered marker.
+  const greenEnd = hasRange ? pos(lowBound) : 25;
+  const yellowEnd = hasRange ? pos(highBound) : 75;
   const marker = hasRange ? pos(current_price) : 50;
 
   return (
@@ -67,25 +68,21 @@ export function PriceRangeGauge({ statistics, locale, className, ...props }: Pri
 
       <div className="relative h-2.5 w-full">
         <div className="absolute inset-0 overflow-hidden rounded-full bg-muted">
-          {hasRange ? (
-            <>
-              <div
-                className={cn("absolute inset-y-0 left-0", ZONE_FILL.low)}
-                style={{ width: `${greenEnd}%` }}
-              />
-              <div
-                className={cn("absolute inset-y-0", ZONE_FILL.typical)}
-                style={{
-                  left: `${greenEnd}%`,
-                  width: `${yellowEnd - greenEnd}%`,
-                }}
-              />
-              <div
-                className={cn("absolute inset-y-0 right-0", ZONE_FILL.high)}
-                style={{ left: `${yellowEnd}%` }}
-              />
-            </>
-          ) : null}
+          <div
+            className={cn("absolute inset-y-0 left-0", ZONE_FILL.low)}
+            style={{ width: `${greenEnd}%` }}
+          />
+          <div
+            className={cn("absolute inset-y-0", ZONE_FILL.typical)}
+            style={{
+              left: `${greenEnd}%`,
+              width: `${yellowEnd - greenEnd}%`,
+            }}
+          />
+          <div
+            className={cn("absolute inset-y-0 right-0", ZONE_FILL.high)}
+            style={{ left: `${yellowEnd}%` }}
+          />
         </div>
 
         <div
