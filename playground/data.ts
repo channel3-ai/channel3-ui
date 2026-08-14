@@ -2,9 +2,9 @@ import type {
   Brand,
   Category,
   CategorySummary,
-  PriceHistory,
+  PriceHistoryResponse,
   PriceStatistics,
-  ProductDetail,
+  Product,
   ProductImage,
   Website,
 } from "@channel3/sdk/resources";
@@ -21,22 +21,26 @@ const img = (
     alt?: string;
     shot?: ProductImage["shot_type"];
   } = {},
-) => ({
-  url: photo(id, 640, 640, 80),
-  alt_text: opts.alt ?? null,
-  is_cleaned_image: opts.cleaned ?? false,
-  is_main_image: opts.main ?? false,
-  shot_type: opts.shot ?? null,
-});
+) => {
+  const url = photo(id, 640, 640, 80);
+  return {
+    url,
+    alt_text: opts.alt ?? null,
+    cleaned_url: opts.cleaned ? url : null,
+    is_main_image: opts.main ?? false,
+    shot_type: opts.shot ?? null,
+  };
+};
 
 const thumb = (id: string) => photo(id, 160, 160, 70);
 
 /**
  * A fully hydrated detail product: multi-merchant offers (one on sale, one out
- * of stock), color swatches, and a size dimension exercising all four variant
- * tiers. `available` is populated, as it would be on `GET /v1/products/{id}`.
+ * of stock), color swatches, and a size dimension exercising in-stock,
+ * out-of-stock, and not-offered values. `available` is populated, as it would
+ * be on `GET /v1/products/{id}`.
  */
-export const detailProduct: ProductDetail = {
+export const detailProduct: Product = {
   id: "nike/pegasus-41",
   title: "Nike Pegasus 41 Road Running Shoes",
   description:
@@ -68,7 +72,7 @@ export const detailProduct: ProductDetail = {
     "Engineered mesh upper for targeted breathability",
   ],
   materials: ["Mesh", "Rubber"],
-  gender: "unisex",
+  gender: null,
   offers: [
     {
       url: "https://nike.com/t/pegasus-41",
@@ -134,11 +138,11 @@ export const detailProduct: ProductDetail = {
       {
         name: "Size",
         values: [
-          { label: "8", exists: true, available: "LimitedAvailability" },
+          { label: "8", exists: true, available: "InStock" },
           { label: "9", exists: true, available: "InStock" },
           { label: "10", exists: true, available: "InStock" },
           { label: "11", exists: true, available: "OutOfStock" },
-          { label: "12", exists: true, available: "PreOrder" },
+          { label: "12", exists: true, available: "OutOfStock" },
           { label: "13", exists: false },
         ],
       },
@@ -155,7 +159,7 @@ export const detailProduct: ProductDetail = {
  * hydrated), so every existing value renders as purchasable until a detail
  * fetch resolves real stock.
  */
-export const searchVariantProduct: ProductDetail = {
+export const searchVariantProduct: Product = {
   id: "nike/pegasus-41-search",
   title: "Nike Pegasus 41 (search result)",
   brands: [{ id: "nike", name: "Nike" }],
@@ -192,7 +196,7 @@ export const searchVariantProduct: ProductDetail = {
  * so the card renders swatches with no extra API call. Seven colors exercise
  * the "+N" overflow.
  */
-const swatchSearchProduct: ProductDetail = {
+const swatchSearchProduct: Product = {
   id: "allbirds/wool-runner",
   title: "Allbirds Wool Runner Everyday Sneakers",
   brands: [{ id: "allbirds", name: "Allbirds" }],
@@ -229,7 +233,7 @@ const swatchSearchProduct: ProductDetail = {
 };
 
 /** Subset for dense grid/carousel tiles in the component canvas. */
-export const cardFixtures: ReadonlyArray<ProductDetail> = [
+export const cardFixtures: ReadonlyArray<Product> = [
   detailProduct,
   swatchSearchProduct,
   {
@@ -268,7 +272,7 @@ export const cardFixtures: ReadonlyArray<ProductDetail> = [
 const GRID_CANVAS_COUNT = 12;
 
 /** Playground grid tile: repeats {@link cardFixtures} with unique ids for React keys. */
-export const gridCanvasProducts: ReadonlyArray<ProductDetail> = Array.from(
+export const gridCanvasProducts: ReadonlyArray<Product> = Array.from(
   { length: GRID_CANVAS_COUNT },
   (_, index) => {
     const source = cardFixtures[index % cardFixtures.length]!;
@@ -280,7 +284,7 @@ export const gridCanvasProducts: ReadonlyArray<ProductDetail> = Array.from(
 );
 
 /** Grid/carousel fixtures covering swatches, sale, sold-out, no-offer and broken-image cases. */
-export const gridProducts: ReadonlyArray<ProductDetail> = [
+export const gridProducts: ReadonlyArray<Product> = [
   detailProduct,
   swatchSearchProduct,
   {
@@ -338,7 +342,7 @@ export const gridProducts: ReadonlyArray<ProductDetail> = [
   },
 ];
 
-function buildHistory(): PriceHistory {
+function buildHistory(): PriceHistoryResponse {
   const prices = [
     159.99, 159.99, 154.99, 149.99, 149.99, 144.5, 139.99, 139.99, 134.99, 129.99, 129.97, 129.97,
     134.99, 139.99, 139.99, 129.97, 124.95, 124.95, 129.97, 129.97,
@@ -347,7 +351,7 @@ function buildHistory(): PriceHistory {
   const history = prices.map((price, index) => ({
     price,
     currency: "USD",
-    timestamp: new Date(start + index * 24 * 60 * 60 * 1000).toISOString(),
+    timestamp: new Date(start + index * 24 * 60 * 60 * 1000),
   }));
   return {
     canonical_product_id: detailProduct.id,
@@ -365,7 +369,7 @@ function buildHistory(): PriceHistory {
   };
 }
 
-export const priceHistory: PriceHistory = buildHistory();
+export const priceHistory: PriceHistoryResponse = buildHistory();
 
 const baseStats = {
   currency: "USD",
@@ -490,12 +494,12 @@ export async function fakeGetCategory(slug: string): Promise<Category> {
 }
 
 /** Simulates `client.products.findSimilar`. */
-export async function fakeFetchSimilar(): Promise<ProductDetail[]> {
+export async function fakeFetchSimilar(): Promise<Product[]> {
   await wait(600);
   return gridProducts.filter((product) => product.id !== detailProduct.id);
 }
 
-const searchPool: ReadonlyArray<ProductDetail> = [...gridProducts, searchVariantProduct];
+const searchPool: ReadonlyArray<Product> = [...gridProducts, searchVariantProduct];
 
 /** Simulates `client.products.search` with naive query matching and paging. */
 export async function fakeSearch({
@@ -504,7 +508,7 @@ export async function fakeSearch({
 }: {
   query: string;
   pageToken?: string;
-}): Promise<{ products: ProductDetail[]; nextPageToken?: string | null }> {
+}): Promise<{ products: Product[]; nextPageToken?: string | null }> {
   await wait(500);
   const q = query.trim().toLowerCase();
   const matches = q

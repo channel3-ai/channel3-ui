@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ImageOff } from "lucide-react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, Product } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -13,25 +13,21 @@ import {
   leadOffer,
   pickHoverImage,
   pickImage,
+  productImageUrl,
 } from "@/registry/default/lib/format";
 import { swatchOption } from "@/registry/default/lib/variants";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
-/** How many swatches to show inline before collapsing the rest into a "+N". */
 const MAX_SWATCHES = 10;
 
 export interface ProductCardProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
-  /** The product to display. Works with both search hits and detail responses. */
-  product: ProductDetail;
+  product: Product;
   /**
    * Destination URL for the card. When set, the image and title render as a real
    * `<a href>` (crawlable, middle/cmd-clickable); a plain left-click still calls
    * {@link ProductCardProps.onSelect} for SPA navigation.
    */
   href?: string;
-  /** Called when the card is activated (e.g. to open a product detail view). */
-  onSelect?: (product: ProductDetail) => void;
+  onSelect?: (product: Product) => void;
   /**
    * Called when the card is hovered, focused, or touched — before activation.
    * Router-agnostic prefetch hook: wire it to your framework's route preloader
@@ -39,36 +35,17 @@ export interface ProductCardProps extends Omit<React.ComponentProps<"div">, "onS
    * destination is warm by the time the user clicks. Fires at most once per
    * pointer entry/focus.
    */
-  onPreload?: (product: ProductDetail) => void;
+  onPreload?: (product: Product) => void;
   /**
    * Called when a color swatch is clicked. Navigate to `value.product_id` (the
    * variant's own product) when set. Falls back to {@link ProductCardProps.onSelect}.
    */
   onSelectVariant?: (value: OptionValue) => void;
-  /**
-   * Show the colorway thumbnail strip between the image and the title. Renders
-   * the swatch variant option's values (falling back to a single circle of the
-   * product's own image when there are no variant thumbnails).
-   */
   showSwatches?: boolean;
-  /**
-   * Eagerly load this card's imagery at high fetch priority. Set on the first
-   * (above-the-fold) cards in a grid/carousel so they aren't deferred by lazy
-   * loading; leave off for the rest.
-   */
   priority?: boolean;
-  /** Locale override for price formatting. */
   locale?: string;
 }
 
-/**
- * Compact, image-forward product tile for grids and carousels. Presentational
- * only — borderless so imagery forms the grid. Hovering crossfades to a second
- * image (or zooms), and hovering a color swatch previews that color's
- * thumbnail. A colorway thumbnail strip sits between the image and the title.
- * Equal-height: the title and price rows are reserved so cards line up
- * regardless of content.
- */
 export function ProductCard({
   product,
   href,
@@ -93,7 +70,8 @@ export function ProductCard({
     }
   }, []);
 
-  const image = pickImage(product.images, { preferCleaned: true });
+  const image = pickImage(product.images);
+  const imageSrc = image ? productImageUrl(image, { preferCleaned: true }) : null;
   const secondImage = pickHoverImage(product.images, { excludeUrl: image?.url });
   const brand = product.brands?.[0]?.name;
   const offer = leadOffer(product.offers);
@@ -115,20 +93,16 @@ export function ProductCard({
 
   const media = (
     <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
-      {image && !imageFailed ? (
+      {imageSrc && !imageFailed ? (
         <img
-          src={image.url}
-          alt={image.alt_text ?? ""}
+          src={imageSrc}
+          alt={image?.alt_text ?? ""}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding="async"
           className={cn(
             "size-full object-cover transition duration-300",
-            // Fade up from the muted placeholder once decoded so images resolve
-            // smoothly instead of popping in.
             imageLoaded ? "opacity-100" : "opacity-0",
-            // The hover image (when present) covers this one, so only the
-            // single-image case needs a hover affordance.
             secondImage ? null : "group-hover:scale-105",
           )}
           ref={revealIfComplete}
@@ -166,10 +140,7 @@ export function ProductCard({
     </div>
   );
 
-  const fallbackThumb = image && !imageFailed ? image.url : null;
-  // The strip always renders one row (the product's own thumbnail when there
-  // are no swatches, an empty circle when there's no image) so the title/price
-  // below stay at a consistent height across cards.
+  const fallbackThumb = imageSrc && !imageFailed ? imageSrc : null;
   const thumbnails = showSwatches ? (
     <div className="flex flex-wrap items-center gap-1 pt-2.5">
       {visibleSwatches.length > 0 ? (
@@ -233,13 +204,9 @@ export function ProductCard({
   const tapClass =
     "block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-  // Prefetch the destination as soon as the user signals intent (hover/focus/
-  // touch), so it's warm before the click. Harmless to fire more than once.
   const preload = onPreload ? () => onPreload(product) : undefined;
 
-  // Crawlable link with progressive enhancement: a plain left-click is handled
-  // by onSelect (SPA nav), but the real href keeps the page indexable and lets
-  // modifier/middle clicks open it normally.
+  // Real href stays crawlable; a plain left-click is SPA via onSelect.
   const tap = (children: React.ReactNode) => {
     if (href) {
       return (
@@ -293,7 +260,6 @@ export function ProductCard({
   );
 }
 
-/** Matching loading placeholder for {@link ProductCard}. */
 export function ProductCardSkeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="product-card-skeleton" className={cn("flex h-full flex-col", className)} {...props}>

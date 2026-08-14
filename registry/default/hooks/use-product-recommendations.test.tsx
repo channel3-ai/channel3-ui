@@ -1,8 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Product } from "@channel3/sdk/resources";
 
 import { useProductRecommendations } from "@/registry/default/hooks/use-product-recommendations";
+import { createQueryWrapper } from "@/registry/default/hooks/query-test-wrapper";
 
 class MockIntersectionObserver {
   static instances: MockIntersectionObserver[] = [];
@@ -30,7 +31,7 @@ class MockIntersectionObserver {
   }
 }
 
-const products: ProductDetail[] = [
+const products: Product[] = [
   { id: "a", title: "A", structured_attributes: {} },
   { id: "b", title: "B", structured_attributes: {} },
 ];
@@ -47,8 +48,9 @@ afterEach(() => {
 describe("useProductRecommendations", () => {
   it("defers fetching until the section is in view", async () => {
     const fetchSimilar = vi.fn().mockResolvedValue(products);
-    const { result } = renderHook(() =>
-      useProductRecommendations({ productId: "source", fetchSimilar }),
+    const { result } = renderHook(
+      () => useProductRecommendations({ productId: "source", fetchSimilar }),
+      { wrapper: createQueryWrapper() },
     );
 
     act(() => result.current.ref(document.createElement("div")));
@@ -69,8 +71,9 @@ describe("useProductRecommendations", () => {
 
   it("fetches immediately when eager", async () => {
     const fetchSimilar = vi.fn().mockResolvedValue(products);
-    const { result } = renderHook(() =>
-      useProductRecommendations({ productId: "source", fetchSimilar, eager: true }),
+    const { result } = renderHook(
+      () => useProductRecommendations({ productId: "source", fetchSimilar, eager: true }),
+      { wrapper: createQueryWrapper() },
     );
 
     await waitFor(() => expect(fetchSimilar).toHaveBeenCalledTimes(1));
@@ -79,8 +82,9 @@ describe("useProductRecommendations", () => {
 
   it("does not fetch without a productId", () => {
     const fetchSimilar = vi.fn().mockResolvedValue(products);
-    renderHook(() =>
-      useProductRecommendations({ productId: undefined, fetchSimilar, eager: true }),
+    renderHook(
+      () => useProductRecommendations({ productId: undefined, fetchSimilar, eager: true }),
+      { wrapper: createQueryWrapper() },
     );
     expect(fetchSimilar).not.toHaveBeenCalled();
   });

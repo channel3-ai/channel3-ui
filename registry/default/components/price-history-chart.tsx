@@ -17,15 +17,11 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export interface PriceHistoryChartProps extends React.ComponentProps<"div"> {
-  /** Time-ordered price points from `GET /v0/price-tracking/history`. */
   history: ReadonlyArray<PriceHistoryPoint>;
-  /** Currency override; defaults to the currency on the first point. */
   currency?: string;
-  /** Locale override for axis and tooltip formatting. */
   locale?: string;
 }
 
-/** Area chart of a product's price over time. */
 export function PriceHistoryChart({
   history,
   currency,
@@ -34,7 +30,7 @@ export function PriceHistoryChart({
   ...props
 }: PriceHistoryChartProps) {
   const points = React.useMemo(
-    () => [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp)),
+    () => [...history].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()),
     [history],
   );
 
@@ -55,8 +51,8 @@ export function PriceHistoryChart({
   const hi = Math.max(...prices);
   const pad = (hi - lo || hi || 1) * 0.15; // flat or all-zero series
   const yDomain: [number, number] = [Math.max(0, lo - pad), hi + pad];
-  const formatDate = (value: string) =>
-    new Date(value).toLocaleDateString(locale, { month: "short", day: "numeric" });
+  const formatDate = (value: Date) =>
+    value.toLocaleDateString(locale, { month: "short", day: "numeric" });
   const formatAxis = (value: number) =>
     new Intl.NumberFormat(locale, {
       style: "currency",
@@ -96,7 +92,7 @@ export function PriceHistoryChart({
             <ChartTooltipContent
               labelFormatter={(_label, payload) => {
                 const raw = payload?.[0]?.payload as PriceHistoryPoint | undefined;
-                return raw ? new Date(raw.timestamp).toLocaleDateString(locale, {
+                return raw ? raw.timestamp.toLocaleDateString(locale, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",

@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { OptionValue, VariantOption, Variants } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import {
@@ -8,9 +8,6 @@ import {
   selectionFromVariants,
   valueState,
 } from "@/registry/default/lib/variants";
-
-type Option = ProductDetail.Variants.Option;
-type OptionValue = ProductDetail.Variants.Option.Value;
 
 const PILL_STATE: Record<ValueState, string> = {
   selected: "border-primary bg-primary text-primary-foreground",
@@ -27,33 +24,12 @@ const SWATCH_STATE: Record<ValueState, string> = {
 };
 
 export interface VariantSelectorProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
-  /** Variant state from a `ProductDetail`. */
-  variants: ProductDetail.Variants;
-  /**
-   * Controlled selection as `{ optionName: label }`. Defaults to the resolved
-   * `variants.selected`. Pass a pending selection to reflect an in-flight
-   * re-resolve.
-   */
+  variants: Variants;
   value?: Record<string, string>;
-  /**
-   * Fired when a value is chosen. Re-resolve the product server-side with
-   * `option_<name>=<label>` (or navigate to `value.product_id` when set).
-   * Values are never disabled — selecting an unavailable value lets the server
-   * relax the rest of the configuration.
-   */
   onSelect?: (optionName: string, value: OptionValue) => void;
-  /**
-   * Fired as a swatch is hovered/focused (the value) and left/blurred (`null`).
-   * Wire to a gallery preview to show that color's `thumbnail_url` without a
-   * fetch. Only swatch options emit this; text pills don't.
-   */
   onValuePreview?: (value: OptionValue | null) => void;
 }
 
-/**
- * Renders every variant dimension of a product as pills (or image swatches),
- * with three tiers of emphasis driven by `exists` and `available`.
- */
 export function VariantSelector({
   variants,
   value,
@@ -85,7 +61,7 @@ function OptionGroup({
   onSelect,
   onValuePreview,
 }: {
-  option: Option;
+  option: VariantOption;
   selectedLabel: string | undefined;
   onSelect: VariantSelectorProps["onSelect"];
   onValuePreview: VariantSelectorProps["onValuePreview"];

@@ -7,7 +7,7 @@ with the shadcn CLI and own it like any other component in your project.
 
 Every component is typed directly against
 [`@channel3/sdk`](https://www.npmjs.com/package/@channel3/sdk), so a
-`ProductDetail` from a search or a product fetch drops straight in — no adapters,
+`Product` from a search or a product fetch drops straight in — no adapters,
 no mapping layer.
 
 ![Product search — search bar, faceted filters, and an infinite-scroll product grid](.github/assets/search-results.png)
@@ -92,10 +92,10 @@ of `src/`.
 ## Quick start
 
 ```tsx
-import type { ProductDetail } from "@channel3/sdk/resources";
+import type { Product } from "@channel3/sdk/resources";
 import { ProductGrid } from "@/components/product-grid";
 
-export function Results({ products }: { products: ProductDetail[] }) {
+export function Results({ products }: { products: Product[] }) {
   return <ProductGrid products={products} onSelect={(p) => navigate(`/p/${p.id}`)} />;
 }
 ```
@@ -112,18 +112,39 @@ then hand the results to these components:
 
 ```ts
 // server-only — runs where CHANNEL3_API_KEY lives, never in the browser
-import Channel3 from "@channel3/sdk";
+import { Channel3 } from "@channel3/sdk";
 
 const client = new Channel3({ apiKey: process.env.CHANNEL3_API_KEY! });
 
 export async function searchProducts(query: string) {
   const page = await client.products.search({ query });
-  return page.products; // ProductDetail[] — hand straight to <ProductGrid>
+  return page.data; // Product[] — hand straight to <ProductGrid>
+}
+
+export async function resolveVariant(
+  productId: string,
+  selected_options?: Record<string, string>,
+) {
+  return client.products.retrieve({ product_id: productId, selected_options });
 }
 ```
 
 A lint rule in this repo blocks runtime imports of `@channel3/sdk` in component
 source to keep that boundary intact — only `import type` is allowed.
+
+The data hooks (`useProductSearch`, `useProductRecommendations`,
+`useAsyncOptions`, `useVariantSelection`) use TanStack Query. Wrap your app in
+`QueryClientProvider` once - the same way you would for any other Query hook:
+
+```tsx
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+<QueryClientProvider client={queryClient}>
+  <App />
+</QueryClientProvider>
+```
 
 > **Wiring it into your framework.** Connecting these server fetchers to Next.js
 > Route Handlers, TanStack Start server functions, or React Router actions — plus
@@ -184,9 +205,8 @@ the consumer's own copy.
 | `product-recommendations` | component | Lazy "you might also like" carousel that fetches when scrolled into view |
 | `search-bar` | component | Controlled search input with clear and optional image search |
 | `product-filters` | component | Configurable filter panel — stacked sidebar or horizontal popover bar |
-| `use-product-search` | hook | Query/filter state, debounced search, infinite-scroll pagination |
-| `use-infinite-scroll` | hook | Headless token-paginated infinite scroll for any list, with a sentinel ref |
-| `use-variant-selection` | hook | Selection state + server-side re-resolution |
-| `use-product-recommendations` | hook | Lazy similar-products fetch via an injected fetcher |
-| `use-async-options` | hook | Debounced typeahead loader for brand/category suggestions |
+| `use-product-search` | hook | Query/filter state, debounced search, infinite-scroll pagination (TanStack Query) |
+| `use-variant-selection` | hook | Selection state + server-side re-resolution (TanStack Query) |
+| `use-product-recommendations` | hook | Lazy similar-products fetch via an injected fetcher (TanStack Query) |
+| `use-async-options` | hook | Debounced typeahead loader for brand/category suggestions (TanStack Query) |
 | `format` / `variants` / `search` | lib | Pure helpers — formatting, variant tiers, filter mapping |

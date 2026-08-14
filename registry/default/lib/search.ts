@@ -1,42 +1,31 @@
 import type {
-  AvailabilityStatus,
   Brand,
   CategoryAttribute,
   CategorySummary,
+  OfferAvailabilityStatus,
   SearchFilters,
   Website,
 } from "@channel3/sdk/resources";
 
 /** Gender values accepted by the search filter (`unisex` products are matched implicitly). */
 export type GenderFilter = NonNullable<SearchFilters["gender"]>;
-/** Age-group values accepted by the search filter. */
 export type AgeFilter = NonNullable<SearchFilters["age"]>[number];
-/** Condition values accepted by the search filter. */
-export type ConditionFilter = NonNullable<SearchFilters["condition"]>;
-/** Availability values accepted by the search filter. */
-export type AvailabilityFilterValue = AvailabilityStatus;
-/** Units for the length/width/height dimension filters. */
+export type ConditionFilter = NonNullable<SearchFilters["conditions"]>[number];
+export type AvailabilityFilterValue = OfferAvailabilityStatus;
 export type LengthUnit = NonNullable<NonNullable<SearchFilters["dimensions"]>["length"]>["unit"];
-/** Units for the weight dimension filter. */
 export type WeightUnit = NonNullable<NonNullable<SearchFilters["dimensions"]>["weight"]>["unit"];
 
-/** A single color requirement: an sRGB hex with an optional target share (0–1). */
 export interface ColorFilter {
   hex: string;
   percentage?: number | null;
 }
 
-/** A single physical-dimension range; both bounds optional (inclusive). */
 export interface DimensionRange {
   min: number | null;
   max: number | null;
 }
 
-/**
- * Physical size/weight filter state. `length`/`width`/`height` share
- * `lengthUnit`; `weight` uses `weightUnit`. A range with neither bound set is
- * dropped from the request.
- */
+/** `length`/`width`/`height` share `lengthUnit`; `weight` uses `weightUnit`. */
 export interface DimensionsFilter {
   length: DimensionRange;
   width: DimensionRange;
@@ -59,41 +48,25 @@ export interface SearchFiltersState {
   gender: GenderFilter | null;
   age: AgeFilter[];
   condition: ConditionFilter | null;
-  availability: AvailabilityStatus[];
+  availability: OfferAvailabilityStatus[];
   colors: ColorFilter[];
   brands: Brand[];
   websites: Website[];
   categories: CategorySummary[];
-  /**
-   * Attribute definitions keyed by the category slug that owns them, preserving
-   * category order, so the UI can group attribute filters per selected category.
-   */
   attributesByCategory: Record<string, CategoryAttribute[]>;
   /** Selected attribute values keyed by attribute slug (OR within, AND across keys). */
   attributes: Record<string, string[]>;
-  /** Physical size/weight ranges, in the units chosen alongside them. */
   dimensions: DimensionsFilter;
 }
 
-/** Fallback unit for the length/width/height filters when no default is given. */
 export const DEFAULT_LENGTH_UNIT: LengthUnit = "in";
-/** Fallback unit for the weight filter when no default is given. */
 export const DEFAULT_WEIGHT_UNIT: WeightUnit = "lb";
 
-/** The units a fresh {@link SearchFiltersState} starts the dimension filters in. */
 export interface DefaultDimensionUnits {
-  /** Starting unit for length/width/height. Defaults to {@link DEFAULT_LENGTH_UNIT}. */
   lengthUnit?: LengthUnit;
-  /** Starting unit for weight. Defaults to {@link DEFAULT_WEIGHT_UNIT}. */
   weightUnit?: WeightUnit;
 }
 
-/**
- * Build a pristine filter state with everything cleared. Pass `units` to choose
- * the dimension units the panel starts in (e.g. metric); they default to
- * {@link DEFAULT_LENGTH_UNIT}/{@link DEFAULT_WEIGHT_UNIT}. Use the result as the
- * controlled `value` you seed `<ProductFilters>` with.
- */
 export function createEmptyFilters(units?: DefaultDimensionUnits): SearchFiltersState {
   return {
     price: { minPrice: null, maxPrice: null },
@@ -118,10 +91,8 @@ export function createEmptyFilters(units?: DefaultDimensionUnits): SearchFilters
   };
 }
 
-/** A pristine filter state with everything cleared, in the default dimension units. */
 export const EMPTY_FILTERS: SearchFiltersState = createEmptyFilters();
 
-/** Selectable option lists, with human labels, for the corresponding fields. */
 export const GENDER_OPTIONS: ReadonlyArray<{ value: GenderFilter; label: string }> = [
   { value: "female", label: "Women" },
   { value: "male", label: "Men" },
@@ -137,15 +108,12 @@ export const AGE_OPTIONS: ReadonlyArray<{ value: AgeFilter; label: string }> = [
 
 export const CONDITION_OPTIONS: ReadonlyArray<{ value: ConditionFilter; label: string }> = [
   { value: "new", label: "New" },
-  { value: "refurbished", label: "Refurbished" },
   { value: "used", label: "Used" },
 ];
 
-export const AVAILABILITY_OPTIONS: ReadonlyArray<{ value: AvailabilityStatus; label: string }> = [
+export const AVAILABILITY_OPTIONS: ReadonlyArray<{ value: OfferAvailabilityStatus; label: string }> = [
   { value: "InStock", label: "In stock" },
-  { value: "LimitedAvailability", label: "Limited" },
-  { value: "PreOrder", label: "Pre-order" },
-  { value: "BackOrder", label: "Back-order" },
+  { value: "OutOfStock", label: "Out of stock" },
 ];
 
 export const LENGTH_UNIT_OPTIONS: ReadonlyArray<{ value: LengthUnit; label: string }> = [
@@ -166,15 +134,10 @@ export const WEIGHT_UNIT_OPTIONS: ReadonlyArray<{ value: WeightUnit; label: stri
 
 const HEX_PATTERN = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-/** True when `value` is a 3- or 6-digit hex color, with or without a leading `#`. */
 export function isValidHex(value: string): boolean {
   return HEX_PATTERN.test(value.trim());
 }
 
-/**
- * Normalize a hex color to a lowercase `#rrggbb` string, expanding shorthand.
- * Returns `null` when the input isn't a valid hex.
- */
 export function normalizeHex(value: string): string | null {
   const trimmed = value.trim();
   if (!isValidHex(trimmed)) {
@@ -190,19 +153,16 @@ export function normalizeHex(value: string): string | null {
   return `#${hex}`;
 }
 
-/** Whether a dimension range has at least one bound set. */
 function hasDimensionBound(range: DimensionRange): boolean {
   return range.min != null || range.max != null;
 }
 
-/** Number of dimension sub-fields (length/width/height/weight) with a bound set. */
 function countDimensions(dimensions: DimensionsFilter): number {
   return [dimensions.length, dimensions.width, dimensions.height, dimensions.weight].filter(
     hasDimensionBound,
   ).length;
 }
 
-/** Active-filter count per facet, for the facet triggers and section badges. */
 export function facetCounts(state: SearchFiltersState) {
   const attributes = Object.values(state.attributes).reduce(
     (sum, values) => sum + values.length,
@@ -223,21 +183,14 @@ export function facetCounts(state: SearchFiltersState) {
   };
 }
 
-/** Total active filter values across every facet, for a summary badge. */
 export function countActiveFilters(state: SearchFiltersState): number {
   return Object.values(facetCounts(state)).reduce((sum, count) => sum + count, 0);
 }
 
-/** Whether a category attribute exposes any selectable values. */
 export function attributeHasValues(attribute: CategoryAttribute): boolean {
   return (attribute.values?.length ?? 0) > 0;
 }
 
-/**
- * Recompute the derived attribute fields from the selected categories and their
- * (state-cached) attribute definitions: the per-category map (in category
- * order) and a pruning of any selected values whose attribute no longer applies.
- */
 export function deriveAttributes(
   categories: CategorySummary[],
   byCategory: Record<string, CategoryAttribute[]>,
@@ -258,11 +211,6 @@ export function deriveAttributes(
   return { attributesByCategory: ordered, attributes: prunedAttributes };
 }
 
-/**
- * Selected categories paired with the attribute filters they expose, skipping
- * categories with none and de-duplicating an attribute shared across categories
- * so it renders only once (under the first category that owns it).
- */
 export function categoryAttributeGroups(
   filters: SearchFiltersState,
 ): Array<{ category: CategorySummary; attributes: CategoryAttribute[] }> {
@@ -278,7 +226,6 @@ export function categoryAttributeGroups(
     .filter((group) => group.attributes.length > 0);
 }
 
-/** Number of selected values across the given category attributes. */
 export function countCategoryAttributes(
   filters: SearchFiltersState,
   attributes: CategoryAttribute[],
@@ -325,7 +272,6 @@ export function setColorPercentage(
   });
 }
 
-/** Set (or clear) the selected values for one attribute handle immutably. */
 export function setAttributeValues(
   attributes: Record<string, string[]>,
   slug: string,
@@ -340,10 +286,6 @@ export function setAttributeValues(
   return next;
 }
 
-/**
- * Serialize one dimension range to the SDK shape, or `null` when it has no
- * bounds (the SDK requires `unit`, so it's only included alongside a bound).
- */
 function toDimensionRange<U extends LengthUnit | WeightUnit>(
   range: DimensionRange,
   unit: U,
@@ -358,7 +300,6 @@ function toDimensionRange<U extends LengthUnit | WeightUnit>(
   };
 }
 
-/** Serialize the dimensions filter, dropping unbounded fields and the whole facet when empty. */
 function toDimensionsFilter(dimensions: DimensionsFilter): NonNullable<SearchFilters["dimensions"]> | null {
   const { lengthUnit, weightUnit } = dimensions;
   const length = toDimensionRange(dimensions.length, lengthUnit);
@@ -398,7 +339,7 @@ export function toSearchFilters(state: SearchFiltersState): SearchFilters {
     filters.age = state.age;
   }
   if (state.condition) {
-    filters.condition = state.condition;
+    filters.conditions = [state.condition];
   }
   if (state.availability.length > 0) {
     filters.availability = state.availability;

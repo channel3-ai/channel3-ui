@@ -6,11 +6,6 @@ import { formatCurrency } from "@/registry/default/lib/format";
 
 type PriceStatus = PriceStatistics["current_status"];
 
-/**
- * Price-quality has no semantic shadcn token (a "good price" isn't
- * `foreground` or `destructive`), so these literal palette colors are
- * intentional and shared by both light and dark themes.
- */
 const ZONE_FILL: Record<PriceStatus, string> = {
   low: "bg-emerald-500/70",
   typical: "bg-amber-500/70",
@@ -33,13 +28,10 @@ const STATUS_TEXT: Record<PriceStatus, string> = {
 const WINDOW = 2;
 
 export interface PriceRangeGaugeProps extends React.ComponentProps<"div"> {
-  /** Price statistics from `GET /v0/price-tracking/history`. */
   statistics: PriceStatistics;
-  /** Override the locale used to format prices. */
   locale?: string;
 }
 
-/** Current price on a three-zone gauge (low / typical / high vs `mean ± std_dev`). */
 export function PriceRangeGauge({ statistics, locale, className, ...props }: PriceRangeGaugeProps) {
   const { min_price, max_price, current_price, currency, mean, std_dev, current_status } =
     statistics;
@@ -53,8 +45,9 @@ export function PriceRangeGauge({ statistics, locale, className, ...props }: Pri
     return Math.min(100, Math.max(0, (fromCenter + 1) * 50));
   };
 
-  const greenEnd = hasRange ? pos(lowBound) : 0;
-  const yellowEnd = hasRange ? pos(highBound) : 0;
+  // Stable prices keep the same three-zone layout with a centered marker.
+  const greenEnd = hasRange ? pos(lowBound) : 25;
+  const yellowEnd = hasRange ? pos(highBound) : 75;
   const marker = hasRange ? pos(current_price) : 50;
 
   return (
@@ -75,25 +68,21 @@ export function PriceRangeGauge({ statistics, locale, className, ...props }: Pri
 
       <div className="relative h-2.5 w-full">
         <div className="absolute inset-0 overflow-hidden rounded-full bg-muted">
-          {hasRange ? (
-            <>
-              <div
-                className={cn("absolute inset-y-0 left-0", ZONE_FILL.low)}
-                style={{ width: `${greenEnd}%` }}
-              />
-              <div
-                className={cn("absolute inset-y-0", ZONE_FILL.typical)}
-                style={{
-                  left: `${greenEnd}%`,
-                  width: `${yellowEnd - greenEnd}%`,
-                }}
-              />
-              <div
-                className={cn("absolute inset-y-0 right-0", ZONE_FILL.high)}
-                style={{ left: `${yellowEnd}%` }}
-              />
-            </>
-          ) : null}
+          <div
+            className={cn("absolute inset-y-0 left-0", ZONE_FILL.low)}
+            style={{ width: `${greenEnd}%` }}
+          />
+          <div
+            className={cn("absolute inset-y-0", ZONE_FILL.typical)}
+            style={{
+              left: `${greenEnd}%`,
+              width: `${yellowEnd - greenEnd}%`,
+            }}
+          />
+          <div
+            className={cn("absolute inset-y-0 right-0", ZONE_FILL.high)}
+            style={{ left: `${yellowEnd}%` }}
+          />
         </div>
 
         <div

@@ -1,75 +1,55 @@
 import * as React from "react";
-import type { ProductDetail } from "@channel3/sdk/resources";
+import { useMutation } from "@tanstack/react-query";
+import type { OptionValue, Product } from "@channel3/sdk/resources";
 
-import { useLatestRequest } from "@/registry/default/hooks/use-latest-request";
 import { mergeSelection, selectionFromVariants } from "@/registry/default/lib/variants";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
-/** Arguments handed to a {@link VariantResolver} when a value is chosen. */
 export interface VariantResolveInput {
-  /** The product currently displayed. */
-  product: ProductDetail;
-  /** Name of the option that changed (e.g. "Color"). */
+  product: Product;
   optionName: string;
-  /**
-   * The chosen value. Carries `product_id`/`thumbnail_url` for color-as-product
-   * setups — resolve those by fetching that product instead of re-querying.
-   */
   value: OptionValue;
-  /**
-   * The full desired configuration as `{ optionName: label }`, with the new
-   * choice merged over the current selection. Send as repeated
-   * `option_<name>=<label>` query params to `GET /v1/products/{id}`.
-   */
   selection: Record<string, string>;
 }
 
 /**
- * Resolves a new product configuration. Implement this on the consumer side so
- * the Channel3 API key stays on your server: call
- * `client.get(`/v1/products/${id}`, { query: { option_Color: "Blue", ... } })`
- * (or fetch `value.product_id`) and return the resolved `ProductDetail`.
+ * Server-side resolver. When `value.product_id` is set, fetch that product;
+ * otherwise retrieve the current id with `selected_options: selection`.
+ *
+ * ```ts
+ * client.products.retrieve({
+ *   product_id: value.product_id ?? product.id,
+ *   selected_options: value.product_id ? undefined : selection,
+ * })
+ * ```
  */
-export type VariantResolver = (input: VariantResolveInput) => Promise<ProductDetail>;
+export type VariantResolver = (input: VariantResolveInput) => Promise<Product>;
 
 export interface UseVariantSelectionOptions {
-  /** Initial product, from search results or a detail fetch. */
-  product: ProductDetail;
+  product: Product;
   /**
    * Re-resolves the product when a value is selected. Omit for a read-only
    * selector that only tracks selection locally.
    */
   resolve?: VariantResolver;
-  /** Called after a resolved product replaces the current one. */
-  onResolved?: (product: ProductDetail) => void;
-  /** Called when `resolve` rejects. */
+  onResolved?: (product: Product) => void;
   onError?: (error: unknown) => void;
 }
 
 export interface UseVariantSelectionResult {
-  /** The product to render — the initial one, or the latest resolved one. */
-  product: ProductDetail;
-  /** Effective selection as `{ optionName: label }`, reflecting server relaxation. */
+  product: Product;
   selection: Record<string, string>;
-  /** True while a `resolve` call is in flight. */
   isResolving: boolean;
-  /** The last `resolve` error, or `null`. */
   error: unknown;
-  /** Select a value for an option. Wire to `VariantSelector.onSelect`. */
   select: (optionName: string, value: OptionValue) => void;
-  /** Clear any pending (optimistic) selection and error. */
   reset: () => void;
 }
 
 const EMPTY_SELECTION: Record<string, string> = {};
 
 /**
- * Manages variant selection and server-side re-resolution for a product.
- *
- * Selection is optimistic: the chosen value highlights immediately while
- * `resolve` runs, then the resolved product's own `selected` becomes the source
- * of truth (so server-side relaxation is reflected automatically).
+ * Selection is optimistic while `resolve` runs; the resolved product's
+ * `variants.selected` is then the source of truth (including server-side
+ * relaxation).
  */
 export function useVariantSelection({
   product: initialProduct,
@@ -81,25 +61,24 @@ export function useVariantSelection({
   const [pending, setPending] = React.useState<Record<string, string>>(EMPTY_SELECTION);
   const [isResolving, setIsResolving] = React.useState(false);
   const [error, setError] = React.useState<unknown>(null);
+  const generation = React.useRef(0);
 
-  // Ignore stale resolves when selections fire in quick succession or the input
-  // product is swapped mid-resolve.
-  const { run, cancel } = useLatestRequest();
+  const { mutate, reset: resetMutation } = useMutation({
+    mutationFn: (input: VariantResolveInput) => Promise.resolve(resolve!(input)),
+  });
 
-  // Adopt a new product when the consumer swaps the input (e.g. new search hit),
-  // discarding any in-flight resolve for the previous product so it can't
-  // clobber the freshly-swapped one.
   const lastInputId = React.useRef(initialProduct.id);
   React.useEffect(() => {
     if (initialProduct.id !== lastInputId.current) {
       lastInputId.current = initialProduct.id;
-      cancel();
+      generation.current += 1;
+      resetMutation();
       setProduct(initialProduct);
       setPending(EMPTY_SELECTION);
       setError(null);
       setIsResolving(false);
     }
-  }, [initialProduct, cancel]);
+  }, [initialProduct, resetMutation]);
 
   const selection = React.useMemo(() => {
     const base = product.variants ? selectionFromVariants(product.variants) : EMPTY_SELECTION;
@@ -119,29 +98,52 @@ export function useVariantSelection({
         return;
       }
 
+      const ticket = ++generation.current;
       setIsResolving(true);
-      run(Promise.resolve(resolve({ product, optionName, value, selection: nextSelection })), {
-        onResolve: (resolved) => {
-          setProduct(resolved);
-          setPending(EMPTY_SELECTION);
-          onResolved?.(resolved);
+      mutate(
+        { product, optionName, value, selection: nextSelection },
+        {
+          onSuccess: (resolved) => {
+            if (generation.current !== ticket) {
+              return;
+            }
+            setProduct(resolved);
+            setPending(EMPTY_SELECTION);
+            onResolved?.(resolved);
+          },
+          onError: (caught) => {
+            if (generation.current !== ticket) {
+              return;
+            }
+            setError(caught);
+            onError?.(caught);
+          },
+          onSettled: () => {
+            if (generation.current !== ticket) {
+              return;
+            }
+            setIsResolving(false);
+          },
         },
-        onReject: (caught) => {
-          setError(caught);
-          onError?.(caught);
-        },
-        onSettle: () => setIsResolving(false),
-      });
+      );
     },
-    [product, pending, resolve, onResolved, onError, run],
+    [product, pending, resolve, onResolved, onError, mutate],
   );
 
   const reset = React.useCallback(() => {
-    cancel();
+    generation.current += 1;
+    resetMutation();
     setPending(EMPTY_SELECTION);
     setError(null);
     setIsResolving(false);
-  }, [cancel]);
+  }, [resetMutation]);
 
-  return { product, selection, isResolving, error, select, reset };
+  return {
+    product,
+    selection,
+    isResolving,
+    error,
+    select,
+    reset,
+  };
 }

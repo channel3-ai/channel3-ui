@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ProductDetail, ProductOffer, PriceStatistics } from "@channel3/sdk/resources";
+import type { OptionValue, PriceStatistics, Product, ProductOffer } from "@channel3/sdk/resources";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,26 +59,26 @@ export const fakeResolve: VariantResolver = async ({ product, selection }) => {
 
 export function usePlaygroundHandlers() {
   const onSelect = React.useCallback(
-    (product: ProductDetail) => console.info("card select", product.id),
+    (product: Product) => console.info("card select", product.id),
     [],
   );
   const onSelectVariant = React.useCallback(
-    (product: ProductDetail, value: ProductDetail.Variants.Option.Value) =>
+    (product: Product, value: OptionValue) =>
       console.info("swatch navigate", product.id, value.label, value.product_id),
     [],
   );
   const onPreload = React.useCallback(
-    (product: ProductDetail) => console.info("card preload", product.id),
+    (product: Product) => console.info("card preload", product.id),
     [],
   );
   const getHref = React.useCallback(
-    (product: ProductDetail) => `#/products/${product.id}`,
+    (product: Product) => `#/products/${product.id}`,
     [],
   );
   return { onSelect, onSelectVariant, onPreload, getHref };
 }
 
-function VariantPanel({ product, title }: { product: ProductDetail; title: string }) {
+function VariantPanel({ product, title }: { product: Product; title: string }) {
   const [showJson, setShowJson] = React.useState(false);
   const { selection, isResolving, select } = useVariantSelection({ product, resolve: fakeResolve });
 
@@ -379,7 +379,7 @@ export function ProductCarouselTile() {
   const [swatches, setSwatches] = React.useState(true);
   const { onSelect, onSelectVariant, onPreload, getHref } =
     usePlaygroundHandlers();
-  const noImage: ProductDetail = {
+  const noImage: Product = {
     id: "x/no-image",
     title: "No image, no offers",
     structured_attributes: {},

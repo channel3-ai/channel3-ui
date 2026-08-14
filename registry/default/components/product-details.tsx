@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { PriceHistory, ProductDetail, ProductOffer } from "@channel3/sdk/resources";
+import type { OptionValue, PriceHistoryResponse, Product, ProductOffer } from "@channel3/sdk/resources";
 
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -13,37 +13,25 @@ import { VariantSelector } from "@/registry/default/components/variant-selector"
 import type { SimilarFetcher } from "@/registry/default/hooks/use-product-recommendations";
 import { formatCurrency, formatPrice, isInStock, isOnSale, leadOffer } from "@/registry/default/lib/format";
 
-type OptionValue = ProductDetail.Variants.Option.Value;
-
-/** Pass-through config for the optional "you might also like" section. */
 export interface ProductDetailsRecommendationsConfig {
-  /** Max recommendations to request. Defaults to 12. */
   limit?: number;
-  /** Heading above the row. Defaults to "You might also like". */
   title?: React.ReactNode;
-  /** Fetch on mount instead of when the section scrolls into view. */
   eager?: boolean;
-  /** Number of skeleton cards shown while loading. */
   skeletonCount?: number;
-  /** Per-recommendation destination URL; makes each card a crawlable `<a href>`. */
-  getHref?: (product: ProductDetail) => string;
-  /** Fired when a recommended card is activated. */
-  onSelect?: (product: ProductDetail) => void;
-  /** Prefetch hook fired when a recommended card is hovered/focused/touched. */
-  onPreload?: (product: ProductDetail) => void;
-  /** Fired when a recommended card's color swatch is clicked. */
-  onSelectVariant?: (product: ProductDetail, value: OptionValue) => void;
-  /** Show color swatches on recommended cards. */
+  getHref?: (product: Product) => string;
+  onSelect?: (product: Product) => void;
+  onPreload?: (product: Product) => void;
+  onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
 }
 
 interface ProductDetailsContextValue {
-  product: ProductDetail;
+  product: Product;
   selection: Record<string, string> | undefined;
   onSelectVariant: ((optionName: string, value: OptionValue) => void) | undefined;
   onOfferClick: ((offer: ProductOffer) => void) | undefined;
   buyLinkRel: string | undefined;
-  priceHistory: PriceHistory | undefined;
+  priceHistory: PriceHistoryResponse | undefined;
   isResolving: boolean;
   locale: string | undefined;
   /** A hovered swatch's value, previewed in the gallery (no fetch). */
@@ -64,21 +52,16 @@ function useProductDetails(component: string): ProductDetailsContextValue {
 }
 
 export interface ProductDetailsProps extends Omit<React.ComponentProps<"div">, "onSelect"> {
-  /** The product to display (a detail fetch, ideally with hydrated variants). */
-  product: ProductDetail;
+  product: Product;
   /** Controlled variant selection (`{ optionName: label }`); defaults to `variants.selected`. */
   selection?: Record<string, string>;
   /** Fired when a variant value is chosen — wire to {@link useVariantSelection}. */
   onSelectVariant?: (optionName: string, value: OptionValue) => void;
-  /** Fired when a merchant buy link is clicked. */
   onOfferClick?: (offer: ProductOffer) => void;
   /** `rel` for merchant buy links. Use `"sponsored noopener noreferrer"` for affiliate links. */
   buyLinkRel?: string;
-  /** Optional price-tracking history to render the price section. */
-  priceHistory?: PriceHistory;
-  /** Dim the variant controls while a re-resolve is in flight. */
+  priceHistory?: PriceHistoryResponse;
   isResolving?: boolean;
-  /** Locale override for price formatting. */
   locale?: string;
   /**
    * Server-side fetcher wrapping `client.products.findSimilar`. When provided,
@@ -86,7 +69,6 @@ export interface ProductDetailsProps extends Omit<React.ComponentProps<"div">, "
    * grid, and `ProductDetailsRecommendations` becomes available.
    */
   fetchSimilar?: SimilarFetcher;
-  /** Options for the recommendations section (see {@link ProductDetailsRecommendationsConfig}). */
   recommendations?: ProductDetailsRecommendationsConfig;
 }
 
@@ -211,9 +193,7 @@ function Offers({ className, ...rest }: React.ComponentProps<"div">) {
   if (offers.length === 0) {
     return null;
   }
-  // Only frame this as "Available at" when something is actually buyable; when
-  // every offer is out of stock, OffersList's own "Out of stock" header carries
-  // the context and a contradictory "Available at" heading is dropped.
+  // Drop the heading when every offer is out of stock — OffersList already says so.
   const hasInStock = offers.some((offer) => isInStock(offer.availability));
   return (
     <div className={cn("flex flex-col gap-2", className)} {...rest}>
@@ -287,7 +267,6 @@ function Attributes({ className, ...rest }: React.ComponentProps<"div">) {
 
 export interface ProductDetailsRecommendationsProps
   extends Omit<React.ComponentProps<typeof ProductRecommendations>, "productId" | "fetchSimilar"> {
-  /** Override the context fetcher (wraps `client.products.findSimilar`). */
   fetchSimilar?: SimilarFetcher;
 }
 
@@ -309,7 +288,7 @@ function Recommendations({ fetchSimilar, ...rest }: ProductDetailsRecommendation
   );
 }
 
-function hasAttributes(product: ProductDetail): boolean {
+function hasAttributes(product: Product): boolean {
   return (
     Boolean(product.category) ||
     Object.keys(product.structured_attributes ?? {}).length > 0 ||
@@ -322,9 +301,6 @@ function hasAttributes(product: ProductDetail): boolean {
 function DefaultLayout() {
   const { priceHistory, fetchSimilar } = useProductDetails("ProductDetails");
 
-  // Each section renders `null` when it has nothing to show, so they can be
-  // listed unconditionally; the price-history separator is the only divider
-  // that needs an explicit guard.
   const showPriceHistory =
     Boolean(priceHistory?.statistics) || (priceHistory?.history?.length ?? 0) > 0;
 
@@ -351,16 +327,6 @@ function DefaultLayout() {
   );
 }
 
-/**
- * Compound product detail page. Use `<ProductDetails product=... />` for the
- * default two-column layout (sticky gallery + separated right rail), or compose
- * `<ProductDetailsRoot>` with the sub-components (`ProductDetailsGallery`,
- * `ProductDetailsHeader`, `ProductDetailsVariants`, `ProductDetailsOffers`,
- * `ProductDetailsPriceHistory`, `ProductDetailsDescription`,
- * `ProductDetailsAttributes`, `ProductDetailsRecommendations`) for a custom
- * arrangement. Pass `fetchSimilar` to render a lazy "you might also like"
- * carousel below the grid.
- */
 export function ProductDetails({ className, ...props }: ProductDetailsProps) {
   return (
     <Root className={cn("w-full", className)} {...props}>
