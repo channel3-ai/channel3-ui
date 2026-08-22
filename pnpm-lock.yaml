@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@channel3/sdk':
-        specifier: 4.0.0-beta.4
-        version: 4.0.0-beta.4
+        specifier: 4.1.0
+        version: 4.1.0
       '@tanstack/react-query':
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
@@ -232,8 +232,8 @@ packages:
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
 
-  '@channel3/sdk@4.0.0-beta.4':
-    resolution: {integrity: sha512-2WIkqFlmhP1W3NB44BNfs8Ezeor97bznf1HQCXh+T/J8DQmPoAZ0GbeWbdhxKdUF/0EfK6NKFIMbJgg+q17Dww==}
+  '@channel3/sdk@4.1.0':
+    resolution: {integrity: sha512-tEjkhcUNhfLOkKE6XALt3726gXIQWcvK08Re2abAZmPu0LTN8B3cnDoRvnR2iLkEbAaO2WDlG9wYOHxyj7YBag==}
     engines: {node: '>=18.0.0'}
 
   '@dotenvx/dotenvx@1.75.1':
@@ -3363,7 +3363,7 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@channel3/sdk@4.0.0-beta.4': {}
+  '@channel3/sdk@4.1.0': {}
 
   '@dotenvx/dotenvx@1.75.1':
     dependencies:
