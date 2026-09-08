@@ -44,7 +44,7 @@
     "react": "^19.2.7",
     "react-colorful": "^5.7.0",
     "react-dom": "^19.2.7",
-    "recharts": "3.8.0"
+    "recharts": "3.10.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
