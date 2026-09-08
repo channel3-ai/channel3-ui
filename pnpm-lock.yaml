@@ -70,7 +70,7 @@ importers:
         specifier: ^1.17.0
         version: 1.42.0(react@19.2.8)
       oxlint:
-        specifier: ^1.68.0
+        specifier: ^1.82.0
         version: 1.82.0
       shadcn:
         specifier: ^4.10.0
