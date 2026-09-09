@@ -55,7 +55,7 @@ importers:
         specifier: ^19.2.3
         version: 19.2.7(@types/react@19.2.18)
       '@vitejs/plugin-react':
-        specifier: ^6.0.5
+        specifier: ^6.1.1
         version: 6.1.1(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0))
       class-variance-authority:
         specifier: ^0.7.1
