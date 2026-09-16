@@ -222,7 +222,6 @@ function PriceHistorySection({ className, ...rest }: React.ComponentProps<"div">
       <h2 className="text-sm font-medium text-muted-foreground">Price history</h2>
       {statistics ? <PriceRangeGauge statistics={statistics} locale={locale} /> : null}
       {history.length > 0 ? <PriceHistoryChart history={history} locale={locale} /> : null}
-      <p className="text-xs text-muted-foreground">Based on the last 30 days.</p>
     </div>
   );
 }
