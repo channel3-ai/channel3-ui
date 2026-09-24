@@ -42,7 +42,7 @@
     "embla-carousel-react": "^8.6.0",
     "radix-ui": "^1.6.7",
     "react": "^19.2.7",
-    "react-colorful": "^5.7.0",
+    "react-colorful": "^5.8.1",
     "react-dom": "^19.2.7",
     "recharts": "3.8.0"
   },
