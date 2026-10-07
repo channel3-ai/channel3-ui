@@ -43,6 +43,17 @@ describe("ProductCard", () => {
     expect(mediaImages()[0]).toHaveAttribute("src", "https://img/clean.jpg");
   });
 
+  it("replaces the photo with the secondary image on card hover", async () => {
+    const user = userEvent.setup();
+    render(<ProductCard product={product} />);
+
+    await user.hover(document.querySelector("[data-slot=product-card]")!);
+
+    const images = mediaImages();
+    expect(images).toHaveLength(1);
+    expect(images[0]).toHaveAttribute("src", "https://img/hover-clean.jpg");
+  });
+
   it("replaces the photo with the swatch image on hover", async () => {
     const user = userEvent.setup();
     render(<ProductCard product={product} />);

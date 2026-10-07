@@ -63,6 +63,8 @@ export function ProductCard({
   const [useRaw, setUseRaw] = React.useState(false);
   const [preview, setPreview] = React.useState<string | null>(null);
   const [brokenPreview, setBrokenPreview] = React.useState<string | null>(null);
+  const [cardHovered, setCardHovered] = React.useState(false);
+  const [brokenHover, setBrokenHover] = React.useState<string | null>(null);
   const activePreview = preview && preview !== brokenPreview ? preview : null;
 
   // A server-rendered image can finish decoding before hydration, so `onLoad`
@@ -80,6 +82,8 @@ export function ProductCard({
   const secondImage = pickHoverImage(product.images, { excludeUrl: image?.url });
   const hoverSrc = secondImage ? productImageUrl(secondImage, { preferCleaned: true }) : null;
   const distinctHover = hoverSrc && hoverSrc !== imageSrc ? hoverSrc : null;
+  const activeHover =
+    cardHovered && distinctHover && distinctHover !== brokenHover ? distinctHover : null;
   const brand = product.brands?.[0]?.name;
   const offer = leadOffer(product.offers);
   const soldOut = isSoldOut(product.offers);
@@ -98,27 +102,31 @@ export function ProductCard({
     }
   };
 
-  const displayedSrc = activePreview ?? imageSrc;
+  const displayedSrc = activePreview ?? activeHover ?? imageSrc;
 
   const media = (
     <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
       {displayedSrc && !imageFailed ? (
         <img
           src={displayedSrc}
-          alt={activePreview ? "" : (image?.alt_text ?? "")}
+          alt={activePreview || activeHover ? "" : (image?.alt_text ?? "")}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding="async"
           className={cn(
             "size-full object-cover transition duration-300",
-            imageLoaded || activePreview ? "opacity-100" : "opacity-0",
-            !activePreview && (distinctHover ? "group-hover:opacity-0" : "group-hover:scale-105"),
+            imageLoaded || activePreview || activeHover ? "opacity-100" : "opacity-0",
+            !activePreview && !distinctHover && "group-hover:scale-105",
           )}
           ref={revealIfComplete}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
             if (activePreview) {
               setBrokenPreview(activePreview);
+              return;
+            }
+            if (activeHover) {
+              setBrokenHover(activeHover);
               return;
             }
             if (!useRaw && image?.cleaned_url && image.cleaned_url !== image.url) {
@@ -134,16 +142,6 @@ export function ProductCard({
           <ImageOff className="size-8" aria-hidden />
         </div>
       )}
-      {distinctHover && !imageFailed && !activePreview ? (
-        <img
-          src={distinctHover}
-          alt=""
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
-          aria-hidden
-          className="absolute inset-0 size-full bg-muted object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        />
-      ) : null}
       {soldOut ? (
         <Badge variant="secondary" className="absolute right-2 top-2">
           Sold out
@@ -264,7 +262,19 @@ export function ProductCard({
   };
 
   return (
-    <div data-slot="product-card" className={cn("group flex h-full flex-col", className)} {...props}>
+    <div
+      data-slot="product-card"
+      className={cn("group flex h-full flex-col", className)}
+      {...props}
+      onMouseEnter={(event) => {
+        setCardHovered(true);
+        props.onMouseEnter?.(event);
+      }}
+      onMouseLeave={(event) => {
+        setCardHovered(false);
+        props.onMouseLeave?.(event);
+      }}
+    >
       {tap(media)}
       {thumbnails}
       {tap(meta)}
