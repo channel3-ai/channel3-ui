@@ -43,11 +43,14 @@ describe("ProductCard", () => {
     expect(mediaImages()[0]).toHaveAttribute("src", "https://img/clean.jpg");
   });
 
-  it("replaces the photo with the secondary image on card hover", async () => {
+  it("replaces the photo when the image is hovered", async () => {
     const user = userEvent.setup();
     render(<ProductCard product={product} />);
 
-    await user.hover(document.querySelector("[data-slot=product-card]")!);
+    await user.hover(screen.getByText("Runner"));
+    expect(mediaImages()[0]).toHaveAttribute("src", "https://img/clean.jpg");
+
+    await user.hover(document.querySelector("[data-slot=product-card] .aspect-square")!);
 
     const images = mediaImages();
     expect(images).toHaveLength(1);
@@ -75,10 +78,10 @@ describe("ProductCard", () => {
       </>,
     );
 
-    const cards = document.querySelectorAll("[data-slot=product-card]");
+    const images = document.querySelectorAll("[data-slot=product-card] .aspect-square");
     // Enter both without leaving the first, the way a missed mouseleave sticks.
-    fireEvent.mouseEnter(cards[0]!);
-    fireEvent.mouseEnter(cards[1]!);
+    fireEvent.mouseEnter(images[0]!);
+    fireEvent.mouseEnter(images[1]!);
 
     const srcs = [...document.querySelectorAll("[data-slot=product-card] .aspect-square img")].map(
       (img) => img.getAttribute("src"),

@@ -63,17 +63,17 @@ export function ProductCard({
   const [useRaw, setUseRaw] = React.useState(false);
   const [preview, setPreview] = React.useState<string | null>(null);
   const [brokenPreview, setBrokenPreview] = React.useState<string | null>(null);
-  const [cardHovered, setCardHovered] = React.useState(false);
+  const [imageHovered, setImageHovered] = React.useState(false);
   const [brokenHover, setBrokenHover] = React.useState<string | null>(null);
   const cardId = React.useId();
   const activePreview = preview && preview !== brokenPreview ? preview : null;
 
-  // Only one card in the page shows its hover image. A parent `.group` used to
-  // match every card at once, and a missed mouseleave left earlier cards stuck.
+  // Only the image under the pointer shows its secondary shot. Entering one
+  // image clears any other that missed mouseleave.
   React.useEffect(() => {
     const onHover = (event: Event) => {
       const activeId = (event as CustomEvent<string>).detail;
-      if (activeId !== cardId) setCardHovered(false);
+      if (activeId !== cardId) setImageHovered(false);
     };
     window.addEventListener("channel3-product-card-hover", onHover);
     return () => window.removeEventListener("channel3-product-card-hover", onHover);
@@ -95,7 +95,7 @@ export function ProductCard({
   const hoverSrc = secondImage ? productImageUrl(secondImage, { preferCleaned: true }) : null;
   const distinctHover = hoverSrc && hoverSrc !== imageSrc ? hoverSrc : null;
   const activeHover =
-    cardHovered && distinctHover && distinctHover !== brokenHover ? distinctHover : null;
+    imageHovered && distinctHover && distinctHover !== brokenHover ? distinctHover : null;
   const brand = product.brands?.[0]?.name;
   const offer = leadOffer(product.offers);
   const soldOut = isSoldOut(product.offers);
@@ -117,7 +117,16 @@ export function ProductCard({
   const displayedSrc = activePreview ?? activeHover ?? imageSrc;
 
   const media = (
-    <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
+    <div
+      className="relative aspect-square overflow-hidden rounded-md bg-muted"
+      onMouseEnter={() => {
+        setImageHovered(true);
+        window.dispatchEvent(
+          new CustomEvent("channel3-product-card-hover", { detail: cardId }),
+        );
+      }}
+      onMouseLeave={() => setImageHovered(false)}
+    >
       {displayedSrc && !imageFailed ? (
         <img
           src={displayedSrc}
@@ -128,7 +137,7 @@ export function ProductCard({
           className={cn(
             "size-full object-cover transition duration-300",
             imageLoaded || activePreview || activeHover ? "opacity-100" : "opacity-0",
-            !activePreview && !distinctHover && "group-hover/product-card:scale-105",
+            !activePreview && !distinctHover && "hover:scale-105",
           )}
           ref={revealIfComplete}
           onLoad={() => setImageLoaded(true)}
@@ -276,19 +285,8 @@ export function ProductCard({
   return (
     <div
       data-slot="product-card"
-      className={cn("group/product-card isolate flex h-full flex-col", className)}
+      className={cn("isolate flex h-full flex-col", className)}
       {...props}
-      onMouseEnter={(event) => {
-        setCardHovered(true);
-        window.dispatchEvent(
-          new CustomEvent("channel3-product-card-hover", { detail: cardId }),
-        );
-        props.onMouseEnter?.(event);
-      }}
-      onMouseLeave={(event) => {
-        setCardHovered(false);
-        props.onMouseLeave?.(event);
-      }}
     >
       {tap(media)}
       {thumbnails}
