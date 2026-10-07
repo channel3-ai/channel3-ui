@@ -65,7 +65,19 @@ export function ProductCard({
   const [brokenPreview, setBrokenPreview] = React.useState<string | null>(null);
   const [cardHovered, setCardHovered] = React.useState(false);
   const [brokenHover, setBrokenHover] = React.useState<string | null>(null);
+  const cardId = React.useId();
   const activePreview = preview && preview !== brokenPreview ? preview : null;
+
+  // Only one card in the page shows its hover image. A parent `.group` used to
+  // match every card at once, and a missed mouseleave left earlier cards stuck.
+  React.useEffect(() => {
+    const onHover = (event: Event) => {
+      const activeId = (event as CustomEvent<string>).detail;
+      if (activeId !== cardId) setCardHovered(false);
+    };
+    window.addEventListener("channel3-product-card-hover", onHover);
+    return () => window.removeEventListener("channel3-product-card-hover", onHover);
+  }, [cardId]);
 
   // A server-rendered image can finish decoding before hydration, so `onLoad`
   // never fires on the client — reveal it on mount if it's already complete.
@@ -116,7 +128,7 @@ export function ProductCard({
           className={cn(
             "size-full object-cover transition duration-300",
             imageLoaded || activePreview || activeHover ? "opacity-100" : "opacity-0",
-            !activePreview && !distinctHover && "group-hover:scale-105",
+            !activePreview && !distinctHover && "group-hover/product-card:scale-105",
           )}
           ref={revealIfComplete}
           onLoad={() => setImageLoaded(true)}
@@ -264,10 +276,13 @@ export function ProductCard({
   return (
     <div
       data-slot="product-card"
-      className={cn("group flex h-full flex-col", className)}
+      className={cn("group/product-card isolate flex h-full flex-col", className)}
       {...props}
       onMouseEnter={(event) => {
         setCardHovered(true);
+        window.dispatchEvent(
+          new CustomEvent("channel3-product-card-hover", { detail: cardId }),
+        );
         props.onMouseEnter?.(event);
       }}
       onMouseLeave={(event) => {

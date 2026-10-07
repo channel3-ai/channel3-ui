@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Product } from "@channel3/sdk/resources";
 
@@ -52,6 +52,38 @@ describe("ProductCard", () => {
     const images = mediaImages();
     expect(images).toHaveLength(1);
     expect(images[0]).toHaveAttribute("src", "https://img/hover-clean.jpg");
+  });
+
+  it("swaps only the card under the pointer", () => {
+    const other: Product = {
+      ...product,
+      id: "other",
+      title: "Other",
+      images: [
+        {
+          url: "https://img/other-raw.jpg",
+          cleaned_url: "https://img/other-clean.jpg",
+          is_main_image: true,
+        },
+        { url: "https://img/other-hover.jpg", cleaned_url: "https://img/other-hover-clean.jpg" },
+      ],
+    };
+    render(
+      <>
+        <ProductCard product={product} />
+        <ProductCard product={other} />
+      </>,
+    );
+
+    const cards = document.querySelectorAll("[data-slot=product-card]");
+    // Enter both without leaving the first, the way a missed mouseleave sticks.
+    fireEvent.mouseEnter(cards[0]!);
+    fireEvent.mouseEnter(cards[1]!);
+
+    const srcs = [...document.querySelectorAll("[data-slot=product-card] .aspect-square img")].map(
+      (img) => img.getAttribute("src"),
+    );
+    expect(srcs).toEqual(["https://img/clean.jpg", "https://img/other-hover-clean.jpg"]);
   });
 
   it("replaces the photo with the swatch image on hover", async () => {
