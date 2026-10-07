@@ -101,6 +101,13 @@ export function ImageGallery({ images, previewSrc, className, ...props }: ImageG
     };
   }, [api]);
 
+  // A new variant brings a new image set; start it on its first photo.
+  const imagesKey = images.map((image) => image.url).join("\n");
+  React.useEffect(() => {
+    setSelected(0);
+    api?.scrollTo(0, true);
+  }, [api, imagesKey]);
+
   if (images.length === 0) {
     return (
       <div
