@@ -61,12 +61,9 @@ export function ProductCard({
   const [imageFailed, setImageFailed] = React.useState(false);
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [useRaw, setUseRaw] = React.useState(false);
-  const [preview, setPreview] = React.useState<string | null>(null);
-  const [brokenPreview, setBrokenPreview] = React.useState<string | null>(null);
   const [imageHovered, setImageHovered] = React.useState(false);
   const [brokenHover, setBrokenHover] = React.useState<string | null>(null);
   const cardId = React.useId();
-  const activePreview = preview && preview !== brokenPreview ? preview : null;
 
   // Only the image under the pointer shows its secondary shot. Entering one
   // image clears any other that missed mouseleave.
@@ -114,7 +111,7 @@ export function ProductCard({
     }
   };
 
-  const displayedSrc = activePreview ?? activeHover ?? imageSrc;
+  const displayedSrc = activeHover ?? imageSrc;
 
   const media = (
     <div
@@ -130,22 +127,18 @@ export function ProductCard({
       {displayedSrc && !imageFailed ? (
         <img
           src={displayedSrc}
-          alt={activePreview || activeHover ? "" : (image?.alt_text ?? "")}
+          alt={activeHover ? "" : (image?.alt_text ?? "")}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding="async"
           className={cn(
             "size-full object-cover transition duration-300",
-            imageLoaded || activePreview || activeHover ? "opacity-100" : "opacity-0",
-            !activePreview && !distinctHover && "hover:scale-105",
+            imageLoaded || activeHover ? "opacity-100" : "opacity-0",
+            !distinctHover && "hover:scale-105",
           )}
           ref={revealIfComplete}
           onLoad={() => setImageLoaded(true)}
           onError={() => {
-            if (activePreview) {
-              setBrokenPreview(activePreview);
-              return;
-            }
             if (activeHover) {
               setBrokenHover(activeHover);
               return;
@@ -183,10 +176,6 @@ export function ProductCard({
               title={value.label}
               aria-label={value.label}
               onClick={() => onSwatch(value)}
-              onMouseEnter={() => setPreview(value.thumbnail_url ?? null)}
-              onMouseLeave={() => setPreview(null)}
-              onFocus={() => setPreview(value.thumbnail_url ?? null)}
-              onBlur={() => setPreview(null)}
               className="size-5 cursor-pointer overflow-hidden rounded-full ring-1 ring-border transition hover:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <img src={value.thumbnail_url ?? undefined} alt="" className="size-full object-cover" />

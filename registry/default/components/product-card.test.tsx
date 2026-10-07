@@ -89,7 +89,7 @@ describe("ProductCard", () => {
     expect(srcs).toEqual(["https://img/clean.jpg", "https://img/other-hover-clean.jpg"]);
   });
 
-  it("replaces the photo with the swatch image on hover", async () => {
+  it("keeps the photo when a color swatch is hovered", async () => {
     const user = userEvent.setup();
     render(<ProductCard product={product} />);
 
@@ -97,9 +97,6 @@ describe("ProductCard", () => {
 
     const images = mediaImages();
     expect(images).toHaveLength(1);
-    expect(images[0]).toHaveAttribute("src", "https://img/black.jpg");
-
-    await user.unhover(screen.getByRole("button", { name: "Black" }));
-    expect(mediaImages()[0]).toHaveAttribute("src", "https://img/clean.jpg");
+    expect(images[0]).toHaveAttribute("src", "https://img/clean.jpg");
   });
 });
