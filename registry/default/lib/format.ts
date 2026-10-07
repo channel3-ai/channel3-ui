@@ -50,9 +50,8 @@ export function availabilityLabel(status: OfferAvailabilityStatus): string {
 }
 
 /**
- * Display URL for an image. `preferCleaned` picks the background-removed square
- * variant when the API has one — right for grids and cards, wrong for detail
- * galleries, which should show the regular shot.
+ * Display URL for an image. `preferCleaned` picks `cleaned_url` (the
+ * background-removed square) when the API has one, and falls back to `url`.
  */
 export function productImageUrl(
   image: ProductImage,
