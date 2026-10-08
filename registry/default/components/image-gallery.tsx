@@ -11,16 +11,21 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { productImageUrl } from "@/registry/default/lib/format";
 
 function GalleryImage({
   image,
   priority = false,
+  className,
 }: {
   image: ProductImage;
   priority?: boolean;
+  className?: string;
 }) {
   const [failed, setFailed] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
+  const [useRaw, setUseRaw] = React.useState(false);
+  const src = useRaw ? image.url : productImageUrl(image, { preferCleaned: true });
   // A server-rendered image can finish decoding before hydration, so `onLoad`
   // never fires on the client — reveal it on mount if it's already complete.
   const revealIfComplete = React.useCallback((node: HTMLImageElement | null) => {
@@ -30,14 +35,19 @@ function GalleryImage({
   }, []);
   if (failed) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+      <div
+        className={cn(
+          "absolute inset-0 flex items-center justify-center text-muted-foreground",
+          className,
+        )}
+      >
         <ImageOff className="size-8" aria-hidden />
       </div>
     );
   }
   return (
     <img
-      src={image.url}
+      src={src}
       alt={image.alt_text ?? ""}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : undefined}
@@ -45,10 +55,18 @@ function GalleryImage({
       className={cn(
         "absolute inset-0 size-full object-cover transition-opacity duration-300",
         loaded ? "opacity-100" : "opacity-0",
+        className,
       )}
       ref={revealIfComplete}
       onLoad={() => setLoaded(true)}
-      onError={() => setFailed(true)}
+      onError={() => {
+        if (!useRaw && src !== image.url) {
+          setUseRaw(true);
+          setLoaded(false);
+          return;
+        }
+        setFailed(true);
+      }}
     />
   );
 }
@@ -56,9 +74,9 @@ function GalleryImage({
 export interface ImageGalleryProps extends React.ComponentProps<"div"> {
   images: ReadonlyArray<ProductImage>;
   /**
-   * Transient image to overlay on the active slide (e.g. a hovered variant
-   * swatch's `thumbnail_url`). The carousel state is untouched; clearing this
-   * (`null`/`undefined`) reveals the underlying slide again.
+   * Image shown in place of the active slide (e.g. a hovered variant swatch's
+   * `thumbnail_url`). The carousel index is unchanged; clearing this restores
+   * the slide.
    */
   previewSrc?: string | null;
 }
@@ -66,6 +84,8 @@ export interface ImageGalleryProps extends React.ComponentProps<"div"> {
 export function ImageGallery({ images, previewSrc, className, ...props }: ImageGalleryProps) {
   const [api, setApi] = React.useState<CarouselApi>();
   const [selected, setSelected] = React.useState(0);
+  const [brokenPreview, setBrokenPreview] = React.useState<string | null>(null);
+  const activePreview = previewSrc && previewSrc !== brokenPreview ? previewSrc : null;
 
   React.useEffect(() => {
     if (!api) {
@@ -80,6 +100,13 @@ export function ImageGallery({ images, previewSrc, className, ...props }: ImageG
       api.off("reInit", sync);
     };
   }, [api]);
+
+  // A new variant brings a new image set; start it on its first photo.
+  const imagesKey = images.map((image) => image.url).join("\n");
+  React.useEffect(() => {
+    setSelected(0);
+    api?.scrollTo(0, true);
+  }, [api, imagesKey]);
 
   if (images.length === 0) {
     return (
@@ -103,20 +130,39 @@ export function ImageGallery({ images, previewSrc, className, ...props }: ImageG
       <div className="relative">
         <Carousel setApi={setApi} className="w-full">
           <CarouselContent>
-            {images.map((image, index) => (
-              <CarouselItem key={`${image.url}-${index}`}>
-                <div className="relative overflow-hidden rounded-lg bg-muted">
-                  {/* Invisible sizer: a square, plus the thumbnail strip's own
-                      height when there's no strip — so a single image fills the
-                      same footprint as a multi-image gallery. */}
-                  <div aria-hidden className="invisible flex flex-col gap-2">
-                    <div className="aspect-square" />
-                    {multiple ? null : <div className="size-14" />}
+            {images.map((image, index) => {
+              const showPreview = Boolean(activePreview) && index === selected;
+              return (
+                <CarouselItem key={`${image.url}-${index}`}>
+                  <div className="relative overflow-hidden rounded-lg bg-muted">
+                    {/* Invisible sizer: a square, plus the thumbnail strip's own
+                        height when there's no strip — so a single image fills the
+                        same footprint as a multi-image gallery. */}
+                    <div aria-hidden className="invisible flex flex-col gap-2">
+                      <div className="aspect-square" />
+                      {multiple ? null : <div className="size-14" />}
+                    </div>
+                    <GalleryImage
+                      image={image}
+                      priority={index === 0}
+                      className={showPreview ? "invisible" : undefined}
+                    />
+                    {showPreview ? (
+                      <img
+                        src={activePreview ?? undefined}
+                        alt=""
+                        className="absolute inset-0 size-full bg-muted object-cover"
+                        onError={() => {
+                          if (previewSrc) {
+                            setBrokenPreview(previewSrc);
+                          }
+                        }}
+                      />
+                    ) : null}
                   </div>
-                  <GalleryImage image={image} priority={index === 0} />
-                </div>
-              </CarouselItem>
-            ))}
+                </CarouselItem>
+              );
+            })}
           </CarouselContent>
           {multiple ? (
             <>
@@ -125,14 +171,6 @@ export function ImageGallery({ images, previewSrc, className, ...props }: ImageG
             </>
           ) : null}
         </Carousel>
-        {previewSrc ? (
-          <img
-            src={previewSrc}
-            alt=""
-            aria-hidden
-            className="pointer-events-none absolute inset-0 size-full rounded-lg bg-muted object-cover"
-          />
-        ) : null}
       </div>
 
       {multiple ? (

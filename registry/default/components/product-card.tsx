@@ -60,7 +60,21 @@ export function ProductCard({
 }: ProductCardProps) {
   const [imageFailed, setImageFailed] = React.useState(false);
   const [imageLoaded, setImageLoaded] = React.useState(false);
-  const [preview, setPreview] = React.useState<string | null>(null);
+  const [useRaw, setUseRaw] = React.useState(false);
+  const [imageHovered, setImageHovered] = React.useState(false);
+  const [brokenHover, setBrokenHover] = React.useState<string | null>(null);
+  const cardId = React.useId();
+
+  // Only the image under the pointer shows its secondary shot. Entering one
+  // image clears any other that missed mouseleave.
+  React.useEffect(() => {
+    const onHover = (event: Event) => {
+      const activeId = (event as CustomEvent<string>).detail;
+      if (activeId !== cardId) setImageHovered(false);
+    };
+    window.addEventListener("channel3-product-card-hover", onHover);
+    return () => window.removeEventListener("channel3-product-card-hover", onHover);
+  }, [cardId]);
 
   // A server-rendered image can finish decoding before hydration, so `onLoad`
   // never fires on the client — reveal it on mount if it's already complete.
@@ -71,8 +85,14 @@ export function ProductCard({
   }, []);
 
   const image = pickImage(product.images);
-  const imageSrc = image ? productImageUrl(image, { preferCleaned: true }) : null;
+  const imageSrc = image
+    ? productImageUrl(image, { preferCleaned: !useRaw })
+    : null;
   const secondImage = pickHoverImage(product.images, { excludeUrl: image?.url });
+  const hoverSrc = secondImage ? productImageUrl(secondImage, { preferCleaned: true }) : null;
+  const distinctHover = hoverSrc && hoverSrc !== imageSrc ? hoverSrc : null;
+  const activeHover =
+    imageHovered && distinctHover && distinctHover !== brokenHover ? distinctHover : null;
   const brand = product.brands?.[0]?.name;
   const offer = leadOffer(product.offers);
   const soldOut = isSoldOut(product.offers);
@@ -91,47 +111,51 @@ export function ProductCard({
     }
   };
 
+  const displayedSrc = activeHover ?? imageSrc;
+
   const media = (
-    <div className="relative aspect-square overflow-hidden rounded-md bg-muted">
-      {imageSrc && !imageFailed ? (
+    <div
+      className="relative aspect-square overflow-hidden rounded-md bg-muted"
+      onMouseEnter={() => {
+        setImageHovered(true);
+        window.dispatchEvent(
+          new CustomEvent("channel3-product-card-hover", { detail: cardId }),
+        );
+      }}
+      onMouseLeave={() => setImageHovered(false)}
+    >
+      {displayedSrc && !imageFailed ? (
         <img
-          src={imageSrc}
-          alt={image?.alt_text ?? ""}
+          src={displayedSrc}
+          alt={activeHover ? "" : (image?.alt_text ?? "")}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding="async"
           className={cn(
             "size-full object-cover transition duration-300",
-            imageLoaded ? "opacity-100" : "opacity-0",
-            secondImage ? null : "group-hover:scale-105",
+            imageLoaded || activeHover ? "opacity-100" : "opacity-0",
+            !distinctHover && "hover:scale-105",
           )}
           ref={revealIfComplete}
           onLoad={() => setImageLoaded(true)}
-          onError={() => setImageFailed(true)}
+          onError={() => {
+            if (activeHover) {
+              setBrokenHover(activeHover);
+              return;
+            }
+            if (!useRaw && image?.cleaned_url && image.cleaned_url !== image.url) {
+              setUseRaw(true);
+              setImageLoaded(false);
+              return;
+            }
+            setImageFailed(true);
+          }}
         />
       ) : (
         <div className="flex size-full items-center justify-center text-muted-foreground">
           <ImageOff className="size-8" aria-hidden />
         </div>
       )}
-      {secondImage && !imageFailed ? (
-        <img
-          src={secondImage.url}
-          alt=""
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
-          aria-hidden
-          className="absolute inset-0 size-full bg-muted object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        />
-      ) : null}
-      {preview ? (
-        <img
-          src={preview}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 size-full bg-muted object-cover"
-        />
-      ) : null}
       {soldOut ? (
         <Badge variant="secondary" className="absolute right-2 top-2">
           Sold out
@@ -152,10 +176,6 @@ export function ProductCard({
               title={value.label}
               aria-label={value.label}
               onClick={() => onSwatch(value)}
-              onMouseEnter={() => setPreview(value.thumbnail_url ?? null)}
-              onMouseLeave={() => setPreview(null)}
-              onFocus={() => setPreview(value.thumbnail_url ?? null)}
-              onBlur={() => setPreview(null)}
               className="size-5 cursor-pointer overflow-hidden rounded-full ring-1 ring-border transition hover:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <img src={value.thumbnail_url ?? undefined} alt="" className="size-full object-cover" />
@@ -252,7 +272,11 @@ export function ProductCard({
   };
 
   return (
-    <div data-slot="product-card" className={cn("group flex h-full flex-col", className)} {...props}>
+    <div
+      data-slot="product-card"
+      className={cn("isolate flex h-full flex-col", className)}
+      {...props}
+    >
       {tap(media)}
       {thumbnails}
       {tap(meta)}
