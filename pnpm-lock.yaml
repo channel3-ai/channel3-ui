@@ -24,7 +24,7 @@ importers:
         specifier: ^19.2.7
         version: 19.2.8
       react-colorful:
-        specifier: ^5.7.0
+        specifier: ^5.8.1
         version: 5.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react-dom:
         specifier: ^19.2.7
