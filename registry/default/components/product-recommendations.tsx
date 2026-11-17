@@ -24,6 +24,7 @@ export interface ProductRecommendationsProps
   onPreload?: (product: Product) => void;
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
+  showRating?: boolean;
   locale?: string;
 }
 
@@ -41,6 +42,7 @@ export function ProductRecommendations({
   onPreload,
   onSelectVariant,
   showSwatches,
+  showRating,
   locale,
   className,
   ...props
@@ -70,6 +72,7 @@ export function ProductRecommendations({
         onPreload={onPreload}
         onSelectVariant={onSelectVariant}
         showSwatches={showSwatches}
+        showRating={showRating}
         locale={locale}
       />
     </section>

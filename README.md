@@ -194,6 +194,7 @@ the consumer's own copy.
 | `product-search` | block | Search bar + filters + infinite-scroll grid, wired to `useProductSearch` |
 | `product-details` | block | Compound PDP composing the gallery, variants, offers, price, attributes, and recommendations |
 | `product-card` | component | Image-forward tile with hover image-swap, colorway swatches, and a skeleton |
+| `product-rating` | component | Star rating with fractional fill and a compact review count |
 | `product-grid` | component | Responsive grid with skeletons and an empty state |
 | `product-carousel` | component | Horizontally scrollable row of equal-height cards |
 | `image-gallery` | component | Image carousel with a synced thumbnail strip and swatch previews |

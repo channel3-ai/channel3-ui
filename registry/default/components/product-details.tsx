@@ -7,6 +7,7 @@ import { ImageGallery } from "@/registry/default/components/image-gallery";
 import { OffersList } from "@/registry/default/components/offers-list";
 import { PriceHistoryChart } from "@/registry/default/components/price-history-chart";
 import { PriceRangeGauge } from "@/registry/default/components/price-range-gauge";
+import { ProductRating } from "@/registry/default/components/product-rating";
 import { ProductAttributes } from "@/registry/default/components/product-attributes";
 import { ProductRecommendations } from "@/registry/default/components/product-recommendations";
 import { VariantSelector } from "@/registry/default/components/variant-selector";
@@ -23,6 +24,7 @@ export interface ProductDetailsRecommendationsConfig {
   onPreload?: (product: Product) => void;
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
+  showRating?: boolean;
 }
 
 interface ProductDetailsContextValue {
@@ -150,6 +152,7 @@ function Header({ className, ...rest }: React.ComponentProps<"div">) {
         <span className="text-sm text-muted-foreground">{brands.join(" · ")}</span>
       ) : null}
       <h1 className="text-xl leading-tight font-semibold">{product.title}</h1>
+      <ProductRating ratings={product.ratings} locale={locale} />
       {offer ? (
         <div className="flex items-center gap-3 pt-1">
           <span className="text-2xl font-semibold">{formatPrice(offer.price, locale)}</span>
@@ -162,6 +165,11 @@ function Header({ className, ...rest }: React.ComponentProps<"div">) {
       ) : null}
     </div>
   );
+}
+
+function Rating({ className, ...rest }: Omit<React.ComponentProps<"div">, "children">) {
+  const { product, locale } = useProductDetails("ProductDetailsRating");
+  return <ProductRating ratings={product.ratings} locale={locale} className={className} {...rest} />;
 }
 
 function Variants({ className, ...rest }: React.ComponentProps<"div">) {
@@ -338,6 +346,7 @@ export {
   Root as ProductDetailsRoot,
   Gallery as ProductDetailsGallery,
   Header as ProductDetailsHeader,
+  Rating as ProductDetailsRating,
   Variants as ProductDetailsVariants,
   Offers as ProductDetailsOffers,
   PriceHistorySection as ProductDetailsPriceHistory,

@@ -42,6 +42,7 @@ const thumb = (id: string) => photo(id, 160, 160, 70);
  */
 export const detailProduct: Product = {
   id: "nike/pegasus-41",
+  ratings: { value: 4.6, count: 5012, source_count: 3 },
   title: "Nike Pegasus 41 Road Running Shoes",
   description:
     "Responsive every-day trainers with a springy ReactX foam midsole and dual Air Zoom units. A breathable engineered mesh upper keeps things cool mile after mile.",
@@ -238,6 +239,7 @@ export const cardFixtures: ReadonlyArray<Product> = [
   swatchSearchProduct,
   {
     id: "patagonia/better-sweater",
+    ratings: { value: 4.8, count: 1287, source_count: 2 },
     title: "Patagonia Better Sweater Fleece Jacket",
     brands: [{ id: "patagonia", name: "Patagonia" }],
     images: [img("1591047139829-d91aecb6caea", { cleaned: true, main: true })],
@@ -289,6 +291,7 @@ export const gridProducts: ReadonlyArray<Product> = [
   swatchSearchProduct,
   {
     id: "patagonia/better-sweater",
+    ratings: { value: 4.8, count: 1287, source_count: 2 },
     title: "Patagonia Better Sweater Fleece Jacket",
     brands: [{ id: "patagonia", name: "Patagonia" }],
     images: [img("1591047139829-d91aecb6caea", { cleaned: true, main: true })],
@@ -319,6 +322,7 @@ export const gridProducts: ReadonlyArray<Product> = [
   },
   {
     id: "bose/quietcomfort-ultra",
+    ratings: { value: 4.3, count: 23840, source_count: 4 },
     title: "Bose QuietComfort Ultra Earbuds",
     brands: [{ id: "bose", name: "Bose" }],
     images: [{ url: "https://example.invalid/broken.jpg", is_main_image: true }],
