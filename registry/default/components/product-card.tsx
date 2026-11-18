@@ -5,6 +5,7 @@ import type { OptionValue, Product } from "@channel3/sdk/resources";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProductRating } from "@/registry/default/components/product-rating";
 import {
   formatCurrency,
   formatPrice,
@@ -42,6 +43,8 @@ export interface ProductCardProps extends Omit<React.ComponentProps<"div">, "onS
    */
   onSelectVariant?: (value: OptionValue) => void;
   showSwatches?: boolean;
+  /** Show the star rating under the price when the product has one. */
+  showRating?: boolean;
   priority?: boolean;
   locale?: string;
 }
@@ -53,6 +56,7 @@ export function ProductCard({
   onPreload,
   onSelectVariant,
   showSwatches = true,
+  showRating = true,
   priority = false,
   locale,
   className,
@@ -229,6 +233,7 @@ export function ProductCard({
           </>
         ) : null}
       </div>
+      {showRating ? <ProductRating ratings={product.ratings} size="sm" locale={locale} /> : null}
     </div>
   );
 

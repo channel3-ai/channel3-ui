@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "product-rating",
+  "title": "Product Rating",
+  "description": "Star rating with fractional fill and a compact review count, from a product's cross-merchant ratings rollup.",
+  "dependencies": [
+    "@channel3/sdk@^4.9.0",
+    "lucide-react"
+  ],
+  "files": [
+    {
+      "path": "registry/default/components/product-rating.tsx",
+      "content": "import * as React from \"react\";\nimport { Star } from \"lucide-react\";\nimport type { ProductRatings } from \"@channel3/sdk/resources\";\n\nimport { cn } from \"@/lib/utils\";\n\nconst MAX_RATING = 5;\nconst STARS = Array.from({ length: MAX_RATING }, (_, index) => index);\n\nexport interface ProductRatingProps extends Omit<React.ComponentProps<\"div\">, \"children\"> {\n  /** The product's `ratings` rollup. Renders nothing when null or without reviews. */\n  ratings: ProductRatings | null | undefined;\n  /** `sm` suits cards — \"4.6 ★ (5K)\"; `default` spells the count out — \"(5K reviews)\". */\n  size?: \"sm\" | \"default\";\n  locale?: string;\n}\n\nexport function ProductRating({\n  ratings,\n  size = \"default\",\n  locale,\n  className,\n  ...props\n}: ProductRatingProps) {\n  if (!ratings || ratings.count <= 0) {\n    return null;\n  }\n\n  const value = Math.min(Math.max(ratings.value, 0), MAX_RATING);\n  const valueLabel = formatNumber(value, locale, {\n    minimumFractionDigits: 1,\n    maximumFractionDigits: 1,\n  });\n  const compactCount = formatNumber(ratings.count, locale, {\n    notation: \"compact\",\n    maximumFractionDigits: 1,\n  });\n  const noun = ratings.count === 1 ? \"review\" : \"reviews\";\n  const starClass = cn(\"shrink-0\", size === \"sm\" ? \"size-3\" : \"size-4\");\n\n  return (\n    <div\n      data-slot=\"product-rating\"\n      role=\"img\"\n      aria-label={`Rated ${valueLabel} out of ${MAX_RATING}, ${formatNumber(ratings.count, locale)} ${noun}`}\n      className={cn(\n        \"flex items-center gap-1 text-muted-foreground\",\n        size === \"sm\" ? \"text-xs\" : \"text-sm\",\n        className,\n      )}\n      {...props}\n    >\n      <span aria-hidden>{valueLabel}</span>\n      {/* Gold stars clipped over muted ones, so the fill tracks the exact value. */}\n      <span aria-hidden className=\"relative inline-flex\">\n        <span className=\"inline-flex text-muted-foreground/30\">\n          {STARS.map((star) => (\n            <Star key={star} className={starClass} fill=\"currentColor\" strokeWidth={0} />\n          ))}\n        </span>\n        <span\n          data-slot=\"product-rating-fill\"\n          className=\"absolute inset-y-0 left-0 inline-flex overflow-hidden text-amber-400\"\n          style={{ width: `${(value / MAX_RATING) * 100}%` }}\n        >\n          {STARS.map((star) => (\n            <Star key={star} className={starClass} fill=\"currentColor\" strokeWidth={0} />\n          ))}\n        </span>\n      </span>\n      <span aria-hidden>{size === \"sm\" ? `(${compactCount})` : `(${compactCount} ${noun})`}</span>\n    </div>\n  );\n}\n\nfunction formatNumber(value: number, locale?: string, options?: Intl.NumberFormatOptions): string {\n  try {\n    return new Intl.NumberFormat(locale, options).format(value);\n  } catch {\n    return String(value);\n  }\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}

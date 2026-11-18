@@ -112,12 +112,28 @@
       ]
     },
     {
+      "name": "product-rating",
+      "type": "registry:component",
+      "title": "Product Rating",
+      "description": "Star rating with fractional fill and a compact review count, from a product's cross-merchant ratings rollup.",
+      "dependencies": ["@channel3/sdk@^4.9.0", "lucide-react"],
+      "files": [
+        { "path": "registry/default/components/product-rating.tsx", "type": "registry:component" }
+      ]
+    },
+    {
       "name": "product-card",
       "type": "registry:component",
       "title": "Product Card",
       "description": "Borderless, image-forward product tile with hover image-swap and color swatches, for grids and carousels. Includes a loading skeleton.",
       "dependencies": ["@channel3/sdk", "lucide-react"],
-      "registryDependencies": ["badge", "skeleton", "@channel3/format", "@channel3/variants"],
+      "registryDependencies": [
+        "badge",
+        "skeleton",
+        "@channel3/product-rating",
+        "@channel3/format",
+        "@channel3/variants"
+      ],
       "files": [
         { "path": "registry/default/components/product-card.tsx", "type": "registry:component" }
       ]
@@ -201,6 +217,7 @@
         "@channel3/price-range-gauge",
         "@channel3/price-history-chart",
         "@channel3/product-attributes",
+        "@channel3/product-rating",
         "@channel3/product-recommendations",
         "@channel3/use-product-recommendations",
         "@channel3/use-variant-selection",

@@ -102,4 +102,19 @@ describe("ProductCard", () => {
     await user.unhover(screen.getByRole("button", { name: "Black" }));
     expect(mediaImages()[0]).toHaveAttribute("src", "https://img/clean.jpg");
   });
+
+  it("shows the rating by default when the product has one", () => {
+    const rated = { ...product, ratings: { value: 4.6, count: 5012, source_count: 3 } };
+    const { rerender } = render(<ProductCard product={rated} locale="en-US" />);
+    expect(screen.getByRole("img", { name: /Rated 4\.6 out of 5/ })).toBeInTheDocument();
+    expect(screen.getByText("(5K)")).toBeInTheDocument();
+
+    rerender(<ProductCard product={rated} showRating={false} />);
+    expect(screen.queryByRole("img", { name: /Rated/ })).not.toBeInTheDocument();
+  });
+
+  it("omits the rating row for an unrated product", () => {
+    render(<ProductCard product={product} />);
+    expect(document.querySelector("[data-slot=product-rating]")).toBeNull();
+  });
 });

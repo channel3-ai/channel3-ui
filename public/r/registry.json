@@ -176,6 +176,22 @@
       ]
     },
     {
+      "name": "product-rating",
+      "type": "registry:component",
+      "title": "Product Rating",
+      "description": "Star rating with fractional fill and a compact review count, from a product's cross-merchant ratings rollup.",
+      "dependencies": [
+        "@channel3/sdk@^4.9.0",
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "registry/default/components/product-rating.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "product-card",
       "type": "registry:component",
       "title": "Product Card",
@@ -187,6 +203,7 @@
       "registryDependencies": [
         "badge",
         "skeleton",
+        "https://ui.trychannel3.com/r/product-rating.json",
         "https://ui.trychannel3.com/r/format.json",
         "https://ui.trychannel3.com/r/variants.json"
       ],
@@ -325,6 +342,7 @@
         "https://ui.trychannel3.com/r/price-range-gauge.json",
         "https://ui.trychannel3.com/r/price-history-chart.json",
         "https://ui.trychannel3.com/r/product-attributes.json",
+        "https://ui.trychannel3.com/r/product-rating.json",
         "https://ui.trychannel3.com/r/product-recommendations.json",
         "https://ui.trychannel3.com/r/use-product-recommendations.json",
         "https://ui.trychannel3.com/r/use-variant-selection.json",
