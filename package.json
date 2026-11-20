@@ -33,7 +33,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.20.2"
   },
   "packageManager": "pnpm@10.34.5",
   "dependencies": {
