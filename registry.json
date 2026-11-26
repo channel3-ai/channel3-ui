@@ -21,6 +21,15 @@
       "files": [{ "path": "registry/default/lib/variants.ts", "type": "registry:lib" }]
     },
     {
+      "name": "policies",
+      "type": "registry:lib",
+      "title": "Policy helpers",
+      "description": "Short shipping, delivery-time, and returns labels from an offer's shipping and return policies.",
+      "dependencies": ["@channel3/sdk@^4.11.0"],
+      "registryDependencies": ["@channel3/format"],
+      "files": [{ "path": "registry/default/lib/policies.ts", "type": "registry:lib" }]
+    },
+    {
       "name": "use-in-viewport",
       "type": "registry:hook",
       "title": "useInViewport",
@@ -125,13 +134,14 @@
       "name": "product-card",
       "type": "registry:component",
       "title": "Product Card",
-      "description": "Borderless, image-forward product tile with hover image-swap and color swatches, for grids and carousels. Includes a loading skeleton.",
+      "description": "Borderless, image-forward product tile with hover image-swap, color swatches, and shipping, returns, and rating lines, for grids and carousels. Includes a loading skeleton.",
       "dependencies": ["@channel3/sdk", "lucide-react"],
       "registryDependencies": [
         "badge",
         "skeleton",
         "@channel3/product-rating",
         "@channel3/format",
+        "@channel3/policies",
         "@channel3/variants"
       ],
       "files": [
@@ -142,9 +152,9 @@
       "name": "offers-list",
       "type": "registry:component",
       "title": "Offers List",
-      "description": "Compares merchant offers for a product, cheapest first, with affiliate-tracked buy links.",
+      "description": "Compares merchant offers for a product, cheapest first, with each merchant's shipping and returns terms and affiliate-tracked buy links.",
       "dependencies": ["@channel3/sdk", "lucide-react"],
-      "registryDependencies": ["badge", "button", "empty", "@channel3/format"],
+      "registryDependencies": ["badge", "button", "empty", "@channel3/format", "@channel3/policies"],
       "files": [
         { "path": "registry/default/components/offers-list.tsx", "type": "registry:component" }
       ]

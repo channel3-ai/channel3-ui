@@ -117,4 +117,26 @@ describe("ProductCard", () => {
     render(<ProductCard product={product} />);
     expect(document.querySelector("[data-slot=product-rating]")).toBeNull();
   });
+
+  it("shows the lead offer's shipping and returns under the price", () => {
+    const withTerms: Product = {
+      ...product,
+      offers: [
+        {
+          url: "https://nike.com/p",
+          domain: "nike.com",
+          availability: "InStock",
+          price: { price: 65.23, currency: "USD" },
+          shipping_policy: { free_shipping_minimum: { amount: 75, currency: "USD" } },
+          return_policy: { accepted: true, free: true, window_days: 60 },
+        },
+      ],
+    };
+    const { rerender } = render(<ProductCard product={withTerms} locale="en-US" />);
+    expect(screen.getByText("Free delivery on $75+")).toBeInTheDocument();
+    expect(screen.getByText("Free 60-day returns")).toBeInTheDocument();
+
+    rerender(<ProductCard product={withTerms} locale="en-US" showPolicies={false} />);
+    expect(document.querySelector("[data-slot=product-card-policy]")).toBeNull();
+  });
 });

@@ -25,6 +25,7 @@ export interface ProductDetailsRecommendationsConfig {
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
   showRating?: boolean;
+  showPolicies?: boolean;
 }
 
 interface ProductDetailsContextValue {

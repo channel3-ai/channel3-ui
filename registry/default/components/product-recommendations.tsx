@@ -25,6 +25,7 @@ export interface ProductRecommendationsProps
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
   showRating?: boolean;
+  showPolicies?: boolean;
   locale?: string;
 }
 
@@ -43,6 +44,7 @@ export function ProductRecommendations({
   onSelectVariant,
   showSwatches,
   showRating,
+  showPolicies,
   locale,
   className,
   ...props
@@ -73,6 +75,7 @@ export function ProductRecommendations({
         onSelectVariant={onSelectVariant}
         showSwatches={showSwatches}
         showRating={showRating}
+        showPolicies={showPolicies}
         locale={locale}
       />
     </section>

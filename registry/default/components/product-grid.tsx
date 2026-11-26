@@ -13,6 +13,7 @@ export interface ProductGridProps extends Omit<React.ComponentProps<"div">, "onS
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
   showRating?: boolean;
+  showPolicies?: boolean;
   loading?: boolean;
   skeletonCount?: number;
   emptyState?: React.ReactNode;
@@ -29,6 +30,7 @@ export function ProductGrid({
   onSelectVariant,
   showSwatches = true,
   showRating = true,
+  showPolicies = true,
   loading = false,
   skeletonCount = 8,
   emptyState,
@@ -78,6 +80,7 @@ export function ProductGrid({
           onSelectVariant={onSelectVariant ? (value) => onSelectVariant(product, value) : undefined}
           showSwatches={showSwatches}
           showRating={showRating}
+          showPolicies={showPolicies}
           priority={index < PRIORITY_COUNT}
           locale={locale}
         />

@@ -210,4 +210,4 @@ the consumer's own copy.
 | `use-variant-selection` | hook | Selection state + server-side re-resolution (TanStack Query) |
 | `use-product-recommendations` | hook | Lazy similar-products fetch via an injected fetcher (TanStack Query) |
 | `use-async-options` | hook | Debounced typeahead loader for brand/category suggestions (TanStack Query) |
-| `format` / `variants` / `search` | lib | Pure helpers — formatting, variant tiers, filter mapping |
+| `format` / `variants` / `policies` / `search` | lib | Pure helpers — formatting, variant tiers, shipping and returns labels, filter mapping |

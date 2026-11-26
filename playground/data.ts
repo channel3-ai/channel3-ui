@@ -81,6 +81,12 @@ export const detailProduct: Product = {
       availability: "InStock",
       price: { price: 129.97, currency: "USD", compare_at_price: 139.99 },
       max_commission_rate: 0.08,
+      shipping_policy: {
+        free_shipping_minimum: { amount: 50, currency: "USD" },
+        shipping_cost: { amount: 8, currency: "USD" },
+        options: [{ name: "Standard", delivery_days_min: 3, delivery_days_max: 5 }],
+      },
+      return_policy: { accepted: true, free: true, window_days: 60 },
     },
     {
       url: "https://www.dickssportinggoods.com/p/pegasus-41",
@@ -88,6 +94,18 @@ export const detailProduct: Product = {
       availability: "InStock",
       price: { price: 139.99, currency: "USD" },
       max_commission_rate: 0.04,
+      shipping_policy: {
+        free_shipping_minimum: { amount: 149, currency: "USD" },
+        shipping_cost: { amount: 7.99, currency: "USD" },
+        delivery_days_max: 7,
+      },
+      return_policy: {
+        accepted: true,
+        free: false,
+        window_days: 90,
+        return_fee: { amount: 7.95, currency: "USD" },
+        refund_types: ["store_credit", "exchange"],
+      },
     },
     {
       url: "https://roadrunnersports.com/pegasus-41",
@@ -249,6 +267,8 @@ export const cardFixtures: ReadonlyArray<Product> = [
         domain: "patagonia.com",
         availability: "InStock",
         price: { price: 99.0, currency: "USD", compare_at_price: 149.0 },
+        shipping_policy: { free_shipping_minimum: { amount: 0, currency: "USD" } },
+        return_policy: { accepted: true, free: true, window_unlimited: true },
       },
     ],
     structured_attributes: {},
