@@ -61,12 +61,44 @@ describe("deliveryTimeLabel", () => {
   });
 
   it("states an upper bound when there's no range", () => {
-    expect(deliveryTimeLabel({ delivery_days_max: 7 })).toBe("Up to 7 day delivery");
+    expect(deliveryTimeLabel({ options: [{ name: "Standard", delivery_days_max: 7 }] })).toBe(
+      "Up to 7 day delivery",
+    );
     expect(deliveryTimeLabel({ options: [{ delivery_days_max: 1 }] })).toBe("1 day delivery");
   });
 
-  it("returns null when transit time isn't stated", () => {
+  it("finds the standard service when it isn't listed first", () => {
+    expect(
+      deliveryTimeLabel({
+        options: [
+          { name: "Expedited shipping", delivery_days_min: 1, delivery_days_max: 3 },
+          { name: "Standard shipping", delivery_days_min: 3, delivery_days_max: 5 },
+        ],
+      }),
+    ).toBe("3–5 day delivery");
+    expect(
+      deliveryTimeLabel({
+        options: [
+          { name: "Standard USPS Military Mail (APO/FPO)", delivery_days_min: 30, delivery_days_max: 45 },
+          { name: "Standard Shipping" },
+        ],
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null when the standard service states no transit time", () => {
     expect(deliveryTimeLabel({ options: [{ name: "Standard" }] })).toBeNull();
+    // The policy-wide maximum comes from the expedited tiers here, not standard.
+    expect(
+      deliveryTimeLabel({
+        delivery_days_max: 2,
+        options: [
+          { name: "Free standard shipping on orders $50+" },
+          { name: "Expedited 2-day shipping", delivery_days_max: 2 },
+        ],
+      }),
+    ).toBeNull();
+    expect(deliveryTimeLabel({ delivery_days_max: 7 })).toBeNull();
     expect(deliveryTimeLabel(null)).toBeNull();
   });
 });
