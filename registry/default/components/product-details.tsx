@@ -34,6 +34,7 @@ interface ProductDetailsContextValue {
   onSelectVariant: ((optionName: string, value: OptionValue) => void) | undefined;
   onOfferClick: ((offer: ProductOffer) => void) | undefined;
   buyLinkRel: string | undefined;
+  showPolicies: boolean;
   priceHistory: PriceHistoryResponse | undefined;
   isResolving: boolean;
   locale: string | undefined;
@@ -63,6 +64,8 @@ export interface ProductDetailsProps extends Omit<React.ComponentProps<"div">, "
   onOfferClick?: (offer: ProductOffer) => void;
   /** `rel` for merchant buy links. Use `"sponsored noopener noreferrer"` for affiliate links. */
   buyLinkRel?: string;
+  /** Show each offer's shipping and returns terms. */
+  showPolicies?: boolean;
   priceHistory?: PriceHistoryResponse;
   isResolving?: boolean;
   locale?: string;
@@ -81,6 +84,7 @@ function Root({
   onSelectVariant,
   onOfferClick,
   buyLinkRel,
+  showPolicies = true,
   priceHistory,
   isResolving = false,
   locale,
@@ -98,6 +102,7 @@ function Root({
       onSelectVariant,
       onOfferClick,
       buyLinkRel,
+      showPolicies,
       priceHistory,
       isResolving,
       locale,
@@ -112,6 +117,7 @@ function Root({
       onSelectVariant,
       onOfferClick,
       buyLinkRel,
+      showPolicies,
       priceHistory,
       isResolving,
       locale,
@@ -197,7 +203,8 @@ function Variants({ className, ...rest }: React.ComponentProps<"div">) {
 }
 
 function Offers({ className, ...rest }: React.ComponentProps<"div">) {
-  const { product, onOfferClick, locale, buyLinkRel } = useProductDetails("ProductDetailsOffers");
+  const { product, onOfferClick, locale, buyLinkRel, showPolicies } =
+    useProductDetails("ProductDetailsOffers");
   const offers = product.offers ?? [];
   if (offers.length === 0) {
     return null;
@@ -214,6 +221,7 @@ function Offers({ className, ...rest }: React.ComponentProps<"div">) {
         onOfferClick={onOfferClick}
         locale={locale}
         buyLinkRel={buyLinkRel}
+        showPolicies={showPolicies}
       />
     </div>
   );

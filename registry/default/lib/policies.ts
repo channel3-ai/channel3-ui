@@ -2,7 +2,6 @@ import type {
   Money,
   OfferRefundType,
   OfferReturnPolicy,
-  OfferShippingOption,
   OfferShippingPolicy,
   ProductOffer,
 } from "@channel3/sdk/resources";
@@ -33,42 +32,22 @@ export function shippingLabel(offer: ProductOffer, locale?: string): string | nu
 }
 
 /**
- * Transit time of the standard service, e.g. "3–5 day delivery". Merchants
+ * Transit time of the first listed service, e.g. "3–5 day delivery". Merchants
  * state days without saying business or calendar and exclude handling, so this
- * stays a day count rather than a promised date. Null when the standard
- * service states no transit time.
+ * stays a day count rather than a promised date. Null when that service states
+ * no transit time.
  */
 export function deliveryTimeLabel(policy: OfferShippingPolicy | null | undefined): string | null {
-  const standard = standardOption(policy?.options);
-  const max = standard?.delivery_days_max;
+  const first = policy?.options?.[0];
+  const max = first?.delivery_days_max;
   if (max == null || max <= 0) {
     return null;
   }
-  const min = standard?.delivery_days_min;
+  const min = first?.delivery_days_min;
   if (min != null && min > 0 && min < max) {
     return `${min}–${max} day delivery`;
   }
   return max === 1 ? "1 day delivery" : `Up to ${max} day delivery`;
-}
-
-// Services that aren't the everyday option: faster paid tiers, and special
-// destinations or freight with much longer transit times.
-const NON_STANDARD_SERVICE =
-  /\b(apo|fpo|dpo|military|po box|freight|international|express|expedited|priority|overnight|next[- ]day|one[- ]day|two[- ]day|[12][- ]day|faster|fastest|same[- ]day)\b/i;
-const STANDARD_SERVICE = /\b(standard|ground|regular|economy)\b/i;
-
-/**
- * The merchant's everyday shipping service. Options don't reliably come
- * standard-first (merchants list military mail or expedited first), so this
- * prefers one named like standard shipping, then the first ordinary service.
- */
-function standardOption(
-  options: ReadonlyArray<OfferShippingOption> | undefined,
-): OfferShippingOption | undefined {
-  const ordinary = (options ?? []).filter(
-    (option) => !option.name || !NON_STANDARD_SERVICE.test(option.name),
-  );
-  return ordinary.find((option) => option.name && STANDARD_SERVICE.test(option.name)) ?? ordinary[0];
 }
 
 /**
