@@ -61,6 +61,7 @@ export interface ProductSearchProps extends Omit<React.ComponentProps<"div">, "o
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
   showRating?: boolean;
+  showPolicies?: boolean;
   locale?: string;
 }
 
@@ -81,6 +82,7 @@ export function ProductSearch({
   onSelectVariant,
   showSwatches,
   showRating,
+  showPolicies,
   locale,
   className,
   ...props
@@ -134,6 +136,7 @@ export function ProductSearch({
         onSelectVariant={onSelectVariant}
         showSwatches={showSwatches}
         showRating={showRating}
+        showPolicies={showPolicies}
         locale={locale}
       />
     );

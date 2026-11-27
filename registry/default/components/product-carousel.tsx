@@ -19,6 +19,7 @@ export interface ProductCarouselProps extends Omit<React.ComponentProps<"div">, 
   onSelectVariant?: (product: Product, value: OptionValue) => void;
   showSwatches?: boolean;
   showRating?: boolean;
+  showPolicies?: boolean;
   title?: React.ReactNode;
   loading?: boolean;
   skeletonCount?: number;
@@ -38,6 +39,7 @@ export function ProductCarousel({
   onSelectVariant,
   showSwatches = true,
   showRating = true,
+  showPolicies = true,
   title,
   loading = false,
   skeletonCount = 8,
@@ -80,6 +82,7 @@ export function ProductCarousel({
                   }
                   showSwatches={showSwatches}
                   showRating={showRating}
+                  showPolicies={showPolicies}
                   priority={index < priorityCount}
                   locale={locale}
                 />

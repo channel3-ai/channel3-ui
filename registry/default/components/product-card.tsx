@@ -16,6 +16,7 @@ import {
   pickImage,
   productImageUrl,
 } from "@/registry/default/lib/format";
+import { returnsLabel, shippingLabel } from "@/registry/default/lib/policies";
 import { swatchOption } from "@/registry/default/lib/variants";
 
 const MAX_SWATCHES = 10;
@@ -45,6 +46,8 @@ export interface ProductCardProps extends Omit<React.ComponentProps<"div">, "onS
   showSwatches?: boolean;
   /** Show the star rating under the price when the product has one. */
   showRating?: boolean;
+  /** Show the lead offer's shipping and returns terms under the price. */
+  showPolicies?: boolean;
   priority?: boolean;
   locale?: string;
 }
@@ -57,6 +60,7 @@ export function ProductCard({
   onSelectVariant,
   showSwatches = true,
   showRating = true,
+  showPolicies = true,
   priority = false,
   locale,
   className,
@@ -102,6 +106,12 @@ export function ProductCard({
     imageHovered && distinctHover && distinctHover !== brokenHover ? distinctHover : null;
   const brand = product.brands?.[0]?.name;
   const offer = leadOffer(product.offers);
+  const policyLines =
+    showPolicies && offer
+      ? [shippingLabel(offer, locale), returnsLabel(offer.return_policy)].filter(
+          (line): line is string => line !== null,
+        )
+      : [];
   const soldOut = isSoldOut(product.offers);
   const interactive = typeof onSelect === "function" || typeof onSelectVariant === "function";
 
@@ -233,6 +243,11 @@ export function ProductCard({
           </>
         ) : null}
       </div>
+      {policyLines.map((line) => (
+        <span key={line} data-slot="product-card-policy" className="truncate text-xs text-muted-foreground">
+          {line}
+        </span>
+      ))}
       {showRating ? <ProductRating ratings={product.ratings} size="sm" locale={locale} /> : null}
     </div>
   );

@@ -43,4 +43,27 @@ describe("OffersList", () => {
     render(<OffersList offers={[]} />);
     expect(screen.getByText("No offers")).toBeInTheDocument();
   });
+
+  it("adds a terms line from the merchant's shipping and returns policies", () => {
+    const enriched: ProductOffer = {
+      ...offer("nike.com", 65.23, "InStock"),
+      shipping_policy: {
+        free_shipping_minimum: { amount: 75, currency: "USD" },
+        options: [{ name: "Standard", delivery_days_min: 3, delivery_days_max: 5 }],
+      },
+      return_policy: { accepted: true, free: true, window_days: 60 },
+    };
+    const { rerender } = render(<OffersList offers={[enriched]} locale="en-US" />);
+    expect(
+      screen.getByText("Free delivery on $75+ · 3–5 day delivery · Free 60-day returns"),
+    ).toBeInTheDocument();
+
+    rerender(<OffersList offers={[enriched]} locale="en-US" showPolicies={false} />);
+    expect(document.querySelector("[data-slot=offer-terms]")).toBeNull();
+  });
+
+  it("omits the terms line when the merchant's terms are unknown", () => {
+    render(<OffersList offers={offers} />);
+    expect(document.querySelector("[data-slot=offer-terms]")).toBeNull();
+  });
 });
